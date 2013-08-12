@@ -24,8 +24,6 @@ before_install:
        libreadline6-dev
        python-numpy
        python-scipy"
-    - ln -s /usr/lib/python2.7/dist-packages/scipy* $VIRTUAL_ENV/lib/python*/site-packages
-    - ln -s /usr/lib/python2.7/dist-packages/numpy* $VIRTUAL_ENV/lib/python*/site-packages
     - git submodule update --init --recursive
     - bundle install
 install:
