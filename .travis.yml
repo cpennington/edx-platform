@@ -2,7 +2,26 @@ language: python
 python:
     - "2.7"
 before_install:
-    - sudo apt-get install $(cat requirements/system/ubuntu/apt-packages.txt)
+    - > sudo apt-get install
+        gfortran
+        libatlas-dev
+        libblas-dev
+        liblapack-dev
+        liblapack3gf
+        libfreetype6-dev
+        libpng12-dev
+        libjpeg-dev
+        libxml2-dev
+        libxslt-dev
+        yui-compressor
+        graphviz
+        libgraphviz-dev
+        graphviz-dev
+        mysql-server
+        libmysqlclient-dev
+        libgeos-dev
+        libreadline6
+        libreadline6-dev
     - git submodule update --init --recursive
     - bundle install
 install:
