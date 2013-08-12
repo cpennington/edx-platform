@@ -2,7 +2,7 @@ language: python
 python:
     - "2.7"
 before_install:
-    -> sudo apt-get install
+    - "sudo apt-get install
        gfortran
        libatlas-dev
        libblas-dev
@@ -21,7 +21,7 @@ before_install:
        libmysqlclient-dev
        libgeos-dev
        libreadline6
-       libreadline6-dev
+       libreadline6-dev"
     - git submodule update --init --recursive
     - bundle install
 install:
