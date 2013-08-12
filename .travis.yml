@@ -29,3 +29,7 @@ before_install:
 install:
     - rake install_prereqs
 script: scripts/travis.sh
+virtualenv:
+    system_site_packages: true
+services:
+    - mongodb
