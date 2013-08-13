@@ -2,6 +2,7 @@ language: python
 python:
     - "2.7"
 before_install:
+    # Install required system packages
     - "sudo apt-get install
        gfortran
        libatlas-dev
@@ -24,13 +25,21 @@ before_install:
        libreadline6-dev
        python-numpy
        python-scipy"
+
+    # Update submodule
     - git submodule update --init --recursive
+
+    # Install required ruby packages
     - bundle install
+
     # Workaround for a permissions issue with Travis virtual machine images
     # that breaks Python's multiprocessing:
     # https://github.com/travis-ci/travis-cookbooks/issues/155
     - sudo rm -rf /dev/shm
     - sudo ln -s /run/shm /dev/shm
+
+    # Fetch origin/master for use w/ diff-cover
+    - git fetch origin master
 install:
     - rake install_prereqs
 script: scripts/travis.sh
