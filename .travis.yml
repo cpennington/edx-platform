@@ -39,7 +39,7 @@ before_install:
     - sudo ln -s /run/shm /dev/shm
 
     # Fetch origin/master for use w/ diff-cover
-    - git fetch origin master
+    - git fetch origin
 install:
     - rake install_prereqs
 script: scripts/travis.sh
