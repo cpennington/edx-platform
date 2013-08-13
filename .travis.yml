@@ -27,6 +27,11 @@ before_install:
     - ln -s /usr/lib/python2.7/dist-packages/scipy* $VIRTUAL_ENV/lib/python*/site-packages
     - git submodule update --init --recursive
     - bundle install
+    # Workaround for a permissions issue with Travis virtual machine images
+    # that breaks Python's multiprocessing:
+    # https://github.com/travis-ci/travis-cookbooks/issues/155
+    - sudo rm -rf /dev/shm
+    - sudo ln -s /run/shm /dev/shm
 install:
     - rake install_prereqs
 script: scripts/travis.sh
