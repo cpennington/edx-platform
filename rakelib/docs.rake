@@ -1,41 +1,15 @@
-require 'launchy'
-
 # --- Develop and public documentation ---
-desc "Invoke sphinx 'make build' to generate docs."
 task :builddocs, [:type, :quiet] do |t, args|
     args.with_defaults(:quiet => "quiet")
-    if args.type == 'dev'
-        path = "docs/developer"
-    elsif args.type == 'author'
-        path = "docs/course_authors"
-    elsif args.type == 'data'
-        path = "docs/data"
-    else
-        path = "docs"
-    end
-
-    Dir.chdir(path) do
-        if args.quiet == 'verbose'
-            sh('make html quiet=false')
-        else
-            sh('make html quiet=true')
-        end
-    end
+    verbosity = args.quiet == 'verbose' ? ' --verbose' : ''
+    type = args.type ? " --type #{args.type}" : ''
+    deprecate_to_invoke(t, args, "docs.builddocs#{type}#{verbosity}")
 end
 
 desc "Show docs in browser (mac and ubuntu)."
 task :showdocs, [:options] do |t, args|
-    if args.options == 'dev'
-        path = "docs/developer"
-    elsif args.options == 'author'
-        path = "docs/course_authors"
-    elsif args.options == 'data'
-        path = "docs/data"
-    else
-        path = "docs"
-    end
-
-    Launchy.open("#{path}/build/html/index.html")
+    type = args.options ? " --type #{args.options}" : ''
+    deprecate_to_invoke(t, args, "docs.showdocs#{type}")
 end
 
 desc "Build docs and show them in browser"

@@ -15,6 +15,17 @@ def deprecated(deprecated, deprecated_by, *args)
     end
 end
 
+def deprecate_to_invoke(task, args, command)
+    arg_vals = []
+    task.arg_names.each do |name|
+        arg_vals << args[name]
+    end
+    puts("#{task.name}[#{arg_vals.join(', ')}] has been replaced by 'invoke #{command}'".red)
+    sleep(5)
+    sh("invoke #{command}")
+end
+
+
 [:lms, :cms].each do |system|
     deprecated("browse_jasmine_#{system}", "test:js:dev", system)
     deprecated("phantomjs_jasmine_#{system}", "test:js:run", system)
