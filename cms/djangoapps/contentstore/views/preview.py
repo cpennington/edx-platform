@@ -23,7 +23,7 @@ from xblock.fragment import Fragment
 
 from lms.lib.xblock.field_data import LmsFieldData
 from lms.lib.xblock.runtime import quote_slashes, unquote_slashes
-from cms.lib.xblock.runtime import local_resource_url
+from cms.lib.xblock.runtime import StudioRuntime
 
 from util.sandboxing import can_execute_unsafe_code
 
@@ -79,7 +79,7 @@ def preview_handler(request, usage_id, handler, suffix=''):
     return webob_to_django_response(resp)
 
 
-class PreviewModuleService(ModuleService):  # pylint: disable=abstract-method
+class PreviewModuleService(StudioRuntime):  # pylint: disable=abstract-method
     """
     An XModule ModuleService for use in Studio previews
     """
@@ -89,9 +89,6 @@ class PreviewModuleService(ModuleService):  # pylint: disable=abstract-method
             'handler': handler_name,
             'suffix': suffix,
         }) + '?' + query
-
-    def local_resource_url(self, block, uri):
-        return local_resource_url(block, uri)
 
 
 def _preview_module_system(request, descriptor):
