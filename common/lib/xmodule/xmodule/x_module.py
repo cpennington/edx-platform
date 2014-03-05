@@ -5,7 +5,7 @@ import yaml
 
 from functools import partial
 from lxml import etree
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from pkg_resources import (
     resource_exists,
     resource_listdir,
@@ -16,6 +16,7 @@ from webob import Response
 from webob.multidict import MultiDict
 
 from xblock.core import XBlock
+from xblock.exceptions import NoSuchServiceError
 from xblock.fields import Scope, Integer, Float, List, XBlockMixin, String, Dict
 from xblock.fragment import Fragment
 from xblock.plugin import default_select
@@ -142,10 +143,6 @@ class XModuleMixin(XBlockMixin):
     )
 
     @property
-    def system(self):
-        return self.runtime
-
-    @property
     def course_id(self):
         return self.runtime.course_id
 
@@ -226,7 +223,6 @@ class XModuleMixin(XBlockMixin):
             for child_loc in self.children:
                 try:
                     child = self.runtime.get_block(child_loc)
-                    child.runtime.export_fs = self.runtime.export_fs
                 except ItemNotFoundError:
                     log.exception(u'Unable to load item {loc}, skipping'.format(loc=child_loc))
                     continue
@@ -312,17 +308,14 @@ class XModuleMixin(XBlockMixin):
         """
         return None
 
-    def bind_for_student(self, xmodule_runtime, field_data):
+    def bind_for_student(self, xmodule_service, field_data):
         """
         Set up this XBlock to act as an XModule instead of an XModuleDescriptor.
 
-        :param xmodule_runtime: the runtime to use when accessing student facing methods
-        :type xmodule_runtime: :class:`ModuleSystem`
-        :param field_data: The :class:`FieldData` to use for all subsequent data access
-        :type field_data: :class:`FieldData`
+        Args:
+            field_data (FieldData): The :class:`FieldData` to use for all subsequent data access
         """
-        # pylint: disable=attribute-defined-outside-init
-        self.xmodule_runtime = xmodule_runtime
+        self.runtime.bind_service(self.scope_ids.usage_id, 'xmodule', xmodule_service)
         self._field_data = field_data
 
 
@@ -371,10 +364,10 @@ class ProxyAttribute(object):
 
 module_attr = partial(ProxyAttribute, '_xmodule')  # pylint: disable=invalid-name
 descriptor_attr = partial(ProxyAttribute, 'descriptor')  # pylint: disable=invalid-name
-module_runtime_attr = partial(ProxyAttribute, 'xmodule_runtime')  # pylint: disable=invalid-name
 
 
 @XBlock.needs("i18n")
+@XBlock.needs("xmodule")
 class XModule(XModuleMixin, HTMLSnippet, XBlock):  # pylint: disable=abstract-method
     """ Implements a generic learning module.
 
@@ -408,6 +401,10 @@ class XModule(XModuleMixin, HTMLSnippet, XBlock):  # pylint: disable=abstract-me
 
     def __unicode__(self):
         return u'<x_module(id={0})>'.format(self.id)
+
+    @property
+    def system(self):
+        return self.runtime.service(self, 'xmodule')
 
     def handle_ajax(self, _dispatch, _data):
         """ dispatch is last part of the URL.
@@ -594,6 +591,8 @@ def only_xmodules(identifier, entry_points):
 
 
 @XBlock.needs("i18n")
+@XBlock.needs("xdescriptor")
+@XBlock.needs("xmodule")
 class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
     """
     An XModuleDescriptor is a specification for an element of a course. This
@@ -629,7 +628,7 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
         This allows for maximal flexibility to add to the interface while
         preserving backwards compatibility.
 
-        runtime: A DescriptorSystem for interacting with external resources
+        runtime: A DescriptorService for interacting with external resources
 
         field_data: A dictionary-like object that maps field names to values
             for those fields.
@@ -642,7 +641,10 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
         # by following previous until None
         # definition_locator is only used by mongostores which separate definitions from blocks
         self.edited_by = self.edited_on = self.previous_version = self.update_version = self.definition_locator = None
-        self.xmodule_runtime = None
+
+    @property
+    def system(self):
+        return self.runtime.service(self, 'xdescriptor')
 
     def has_dynamic_children(self):
         """
@@ -666,12 +668,11 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
         Interpret the parsed XML in `node`, creating an XModuleDescriptor.
         """
         xml = etree.tostring(node)
-        # TODO: change from_xml to not take org and course, it can use self.system.
-        block = cls.from_xml(xml, runtime, id_generator)
+        block = cls.from_xml(xml, runtime.service(None, 'xdescriptor'), id_generator)
         return block
 
     @classmethod
-    def from_xml(cls, xml_data, system, id_generator):
+    def from_xml(cls, xml_data, runtime, id_generator):
         """
         Creates an instance of this descriptor from the supplied xml_data.
         This may be overridden by subclasses.
@@ -680,7 +681,7 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
             xml_data (str): A string of xml that will be translated into data and children
                 for this module
 
-            system (:class:`.XMLParsingSystem):
+            system (:class:`.XMLParsingService):
 
             id_generator (:class:`xblock.runtime.IdGenerator`): Used to generate the
                 usage_ids and definition_ids when loading this xml
@@ -693,7 +694,7 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
         Export this :class:`XModuleDescriptor` as XML, by setting attributes on the provided
         `node`.
         """
-        xml_string = self.export_to_xml(self.runtime.export_fs)
+        xml_string = self.export_to_xml(self.service.export_fs)
         exported_node = etree.fromstring(xml_string)
         node.tag = exported_node.tag
         node.text = exported_node.text
@@ -771,7 +772,7 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
                 continue
 
             # gets the 'default_value' and 'explicitly_set' attrs
-            metadata_fields[field.name] = self.runtime.get_field_provenance(self, field)
+            metadata_fields[field.name] = self.runtime.service(self, 'xdescriptor').get_field_provenance(self, field)
             metadata_fields[field.name]['field_name'] = field.name
             metadata_fields[field.name]['display_name'] = field.display_name
             metadata_fields[field.name]['help'] = field.help
@@ -808,34 +809,32 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
         Returns the XModule corresponding to this descriptor. Expects that the system
         already supports all of the attributes needed by xmodules
         """
-        assert self.xmodule_runtime is not None
-        assert self.xmodule_runtime.error_descriptor_class is not None
-        if self.xmodule_runtime.xmodule_instance is None:
+        xmodule_service = self.runtime.service(self, 'xmodule')
+        if xmodule_service.xmodule_instance is None:
             try:
-                self.xmodule_runtime.construct_xblock_from_class(
+                xmodule_service.xmodule_instance = self.runtime.construct_xblock_from_class(
                     self.module_class,
                     descriptor=self,
                     scope_ids=self.scope_ids,
                     field_data=self._field_data,
                 )
-                self.xmodule_runtime.xmodule_instance.save()
+                xmodule_service.xmodule_instance.save()
             except Exception:  # pylint: disable=broad-except
                 # xmodule_instance is set by the XModule.__init__. If we had an error after that,
                 # we need to clean it out so that we can set up the ErrorModule instead
-                self.xmodule_runtime.xmodule_instance = None
+                xmodule_service.xmodule_instance = None
 
-                if isinstance(self, self.xmodule_runtime.error_descriptor_class):
+                if isinstance(self, xmodule_service.error_descriptor_class):
                     log.exception('Error creating an ErrorModule from an ErrorDescriptor')
                     raise
 
                 log.exception('Error creating xmodule')
-                descriptor = self.xmodule_runtime.error_descriptor_class.from_descriptor(
+                descriptor = xmodule_service.error_descriptor_class.from_descriptor(
                     self,
                     error_msg=exc_info_to_str(sys.exc_info())
                 )
-                descriptor.xmodule_runtime = self.xmodule_runtime
-                self.xmodule_runtime.xmodule_instance = descriptor._xmodule  # pylint: disable=protected-access
-        return self.xmodule_runtime.xmodule_instance
+                xmodule_service.xmodule_instance = descriptor._xmodule  # pylint: disable=protected-access
+        return xmodule_service.xmodule_instance
 
     course_id = module_attr('course_id')
     displayable_items = module_attr('displayable_items')
@@ -890,27 +889,50 @@ class ConfigurableFragmentWrapper(object):  # pylint: disable=abstract-method
         return frag
 
 
-# This function exists to give applications (LMS/CMS) a place to monkey-patch until
-# we can refactor modulestore to split out the FieldData half of its interface from
-# the Runtime part of its interface. This function matches the Runtime.handler_url interface
-def descriptor_global_handler_url(block, handler_name, suffix='', query='', thirdparty=False):
-    raise NotImplementedError("Applications must monkey-patch this function before using handler_url for studio_view")
-
-
-# This function exists to give applications (LMS/CMS) a place to monkey-patch until
-# we can refactor modulestore to split out the FieldData half of its interface from
-# the Runtime part of its interface. This function matches the Runtime.local_resource_url interface
-def descriptor_global_local_resource_url(block, uri):
-    raise NotImplementedError("Applications must monkey-patch this function before using local_resource_url for studio_view")
-
-
-class DescriptorSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable=abstract-method
+class XModuleRuntime(Runtime):
     """
-    Base class for :class:`Runtime`s to be used with :class:`XModuleDescriptor`s
+    XBlock Runtime with functionality needed by xmodules
+    """
+
+    MANAGED_SERVICES = ('xmodule', 'xdescriptor')
+
+    def __init__(self, **kwargs):
+        super(XModuleRuntime, self).__init__(**kwargs)
+        self._service_bindings = defaultdict(dict)
+
+    def bind_service(self, usage_id, service_name, service):
+        if service_name not in self.MANAGED_SERVICES:
+            raise ValueError('Can only bind one of {!r}'.format(self.MANAGED_SERVICES))
+
+        service.runtime = self
+        self._service_bindings[service_name][usage_id] = service
+
+    def service(self, block, service_name):
+        if service_name in self.MANAGED_SERVICES:
+            if block is None:
+                usage_id = None
+            else:
+                usage_id = block.scope_ids.usage_id
+            try:
+                return self._service_bindings[service_name][usage_id]
+            except KeyError:
+                raise NoSuchServiceError("Service {!r} not bound for {!r}".format(service_name, block))
+        else:
+            return super(XModuleRuntime, self).service(block, service_name)
+
+    def add_block_as_child_node(self, block, node):
+        child = etree.SubElement(node, "unknown")
+        child.set('url_name', block.url_name)
+        block.add_xml_to_node(child)
+
+
+class DescriptorService(object):  # pylint: disable=abstract-method
+    """
+    Implementation of the 'xdescriptor' XBlock service.
     """
 
     def __init__(
-        self, load_item, resources_fs, error_tracker, get_policy=None, **kwargs
+        self, load_item, resources_fs, error_tracker, get_policy=None
     ):
         """
         load_item: Takes a Location and returns an XModuleDescriptor
@@ -953,7 +975,7 @@ class DescriptorSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable
         local_resource_url: an implementation of :meth:`xblock.runtime.Runtime.local_resource_url`
 
         """
-        super(DescriptorSystem, self).__init__(**kwargs)
+        super(DescriptorService, self).__init__()
 
         # This is used by XModules to write out separate files during xml export
         self.export_fs = None
@@ -966,9 +988,7 @@ class DescriptorSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable
         else:
             self.get_policy = lambda u: {}
 
-    def get_block(self, usage_id):
-        """See documentation for `xblock.runtime:Runtime.get_block`"""
-        return self.load_item(usage_id)
+        self.runtime = None
 
     def get_field_provenance(self, xblock, field):
         """
@@ -997,78 +1017,25 @@ class DescriptorSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable
             result['default_value'] = field.to_json(field.default)
         return result
 
-    def render(self, block, view_name, context=None):
-        if view_name == 'student_view':
-            assert block.xmodule_runtime is not None
-            if isinstance(block, (XModule, XModuleDescriptor)):
-                to_render = block._xmodule
-            else:
-                to_render = block
-            return block.xmodule_runtime.render(to_render, view_name, context)
-        else:
-            return super(DescriptorSystem, self).render(block, view_name, context)
 
-    def handler_url(self, block, handler_name, suffix='', query='', thirdparty=False):
-        xmodule_runtime = getattr(block, 'xmodule_runtime', None)
-        if xmodule_runtime is not None:
-            return xmodule_runtime.handler_url(block, handler_name, suffix, query, thirdparty)
-        else:
-            # Currently, Modulestore is responsible for instantiating DescriptorSystems
-            # This means that LMS/CMS don't have a way to define a subclass of DescriptorSystem
-            # that implements the correct handler url. So, for now, instead, we will reference a
-            # global function that the application can override.
-            return descriptor_global_handler_url(block, handler_name, suffix, query, thirdparty)
-
-    def local_resource_url(self, block, uri):
-        """
-        See :meth:`xblock.runtime.Runtime:local_resource_url` for documentation.
-        """
-        xmodule_runtime = getattr(block, 'xmodule_runtime', None)
-        if xmodule_runtime is not None:
-            return xmodule_runtime.local_resource_url(block, uri)
-        else:
-            # Currently, Modulestore is responsible for instantiating DescriptorSystems
-            # This means that LMS/CMS don't have a way to define a subclass of DescriptorSystem
-            # that implements the correct local_resource_url. So, for now, instead, we will reference a
-            # global function that the application can override.
-            return descriptor_global_local_resource_url(block, uri)
-
-    def resource_url(self, resource):
-        """
-        See :meth:`xblock.runtime.Runtime:resource_url` for documentation.
-        """
-        raise NotImplementedError("edX Platform doesn't currently implement XBlock resource urls")
-
-    def publish(self, block, event):
-        """
-        See :meth:`xblock.runtime.Runtime:publish` for documentation.
-        """
-        raise NotImplementedError("edX Platform doesn't currently implement XBlock publish")
-
-    def add_block_as_child_node(self, block, node):
-        child = etree.SubElement(node, "unknown")
-        child.set('url_name', block.url_name)
-        block.add_xml_to_node(child)
-
-
-class XMLParsingSystem(DescriptorSystem):
+class XMLParsingService(DescriptorService):
     def __init__(self, process_xml, **kwargs):
         """
         process_xml: Takes an xml string, and returns a XModuleDescriptor
             created from that xml
         """
 
-        super(XMLParsingSystem, self).__init__(**kwargs)
+        super(XMLParsingService, self).__init__(**kwargs)
         self.process_xml = process_xml
 
 
-class ModuleSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable=abstract-method
+class ModuleService(object):  # pylint: disable=abstract-method
     """
     This is an abstraction such that x_modules can function independent
     of the courseware (e.g. import into other types of courseware, LMS,
     or if we want to have a sandbox server for user-contributed content)
 
-    ModuleSystem objects are passed to x_modules to provide access to system
+    ModuleService objects are passed to x_modules to provide access to system
     functionality.
 
     Note that these functions can be closures over e.g. a django request
@@ -1076,13 +1043,13 @@ class ModuleSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable=abs
     """
     def __init__(
             self, static_url, track_function, get_module, render_template,
-            replace_urls, descriptor_runtime, user=None, filestore=None,
+            replace_urls, user=None, filestore=None,
             debug=False, hostname="", xqueue=None, publish=None, node_path="",
             anonymous_student_id='', course_id=None,
             open_ended_grading_interface=None, s3_interface=None,
             cache=None, can_execute_unsafe_code=None, replace_course_urls=None,
             replace_jump_to_id_urls=None, error_descriptor_class=None, get_real_user=None,
-            field_data=None, get_user_role=None,
+            get_user_role=None,
             **kwargs):
         """
         Create a closure around the system environment.
@@ -1117,8 +1084,6 @@ class ModuleSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable=abs
                          that capa_module can use to fix up the static urls in
                          ajax results.
 
-        descriptor_runtime - A `DescriptorSystem` to use for loading xblocks by id
-
         anonymous_student_id - Used for tracking modules with student id
 
         course_id - the course_id containing this module
@@ -1145,7 +1110,7 @@ class ModuleSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable=abs
 
         # Usage_store is unused, and field_data is often supplanted with an
         # explicit field_data during construct_xblock.
-        super(ModuleSystem, self).__init__(id_reader=None, field_data=field_data, **kwargs)
+        super(ModuleService, self).__init__(**kwargs)
 
         self.STATIC_URL = static_url
         self.xqueue = xqueue
@@ -1178,7 +1143,8 @@ class ModuleSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable=abs
         self.get_real_user = get_real_user
 
         self.get_user_role = get_user_role
-        self.descriptor_runtime = descriptor_runtime
+
+        self.runtime = None
 
     def get(self, attr):
         """	provide uniform access to attributes (like etree)."""
@@ -1202,18 +1168,9 @@ class ModuleSystem(ConfigurableFragmentWrapper, Runtime):  # pylint: disable=abs
         assert self.xmodule_instance is not None
         return self.handler_url(self.xmodule_instance, 'xmodule_handler', '', '').rstrip('/?')
 
-    def get_block(self, block_id):
-        return self.get_module(self.descriptor_runtime.get_block(block_id))
-
-    def resource_url(self, resource):
-        raise NotImplementedError("edX Platform doesn't currently implement XBlock resource urls")
-
-    def publish(self, block, event):
-        pass
-
 
 class DoNothingCache(object):
-    """A duck-compatible object to use in ModuleSystem when there's no cache."""
+    """A duck-compatible object to use in ModuleService when there's no cache."""
     def get(self, _key):
         return None
 

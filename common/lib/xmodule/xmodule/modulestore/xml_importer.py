@@ -6,12 +6,12 @@ import json
 
 from .xml import XMLModuleStore, ImportSystem, ParentTracker
 from xmodule.modulestore import Location
-from xblock.fields import Scope, Reference, ReferenceList
+from xblock.fields import Scope, Reference, ReferenceList, String
+from xblock.runtime import Runtime
 from xmodule.contentstore.content import StaticContent
 from .inheritance import own_metadata
 from xmodule.errortracker import make_error_tracker
 from .store_utilities import rewrite_nonportable_content_links
-import xblock
 
 log = logging.getLogger(__name__)
 
@@ -134,11 +134,10 @@ def import_from_xml(
 
     xml_module_store = XMLModuleStore(
         data_dir,
+        build_runtime=store.build_runtime,
         default_class=default_class,
         course_dirs=course_dirs,
         load_error_modules=load_error_modules,
-        xblock_mixins=store.xblock_mixins,
-        xblock_select=store.xblock_select,
     )
 
     # NOTE: the XmlModuleStore does not implement get_items()
@@ -318,7 +317,7 @@ def import_module(
 
     logging.debug('processing import of module {}...'.format(module.location.url()))
 
-    if do_import_static and 'data' in module.fields and isinstance(module.fields['data'], xblock.fields.String):
+    if do_import_static and 'data' in module.fields and isinstance(module.fields['data'], String):
         # we want to convert all 'non-portable' links in the module_data
         # (if it is a string) to portable strings (e.g. /static/)
         module.data = rewrite_nonportable_content_links(

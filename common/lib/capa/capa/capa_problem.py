@@ -75,7 +75,7 @@ class LoncapaSystem(object):
         i18n: an object implementing the `gettext.Translations` interface so
             that we can use `.ugettext` to localize strings.
 
-    See :class:`ModuleSystem` for documentation of other attributes.
+    See :class:`ModuleService` for documentation of other attributes.
 
     """
     def __init__(                                       # pylint: disable=invalid-name

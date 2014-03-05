@@ -69,7 +69,6 @@ class BaseCourseTestCase(unittest.TestCase):
         modulestore = XMLModuleStore(
             DATA_DIR,
             course_dirs=[name],
-            xblock_mixins=(InheritanceMixin,),
             xblock_select=only_xmodules,
         )
         courses = modulestore.get_courses()
@@ -220,7 +219,7 @@ class ImportTestCase(BaseCourseTestCase):
         )
 
         # Now export and check things
-        descriptor.runtime.export_fs = MemoryFS()
+        export_fs = descriptor.service.export_fs = MemoryFS()
         node = etree.Element('unknown')
         descriptor.add_xml_to_node(node)
 
@@ -232,7 +231,7 @@ class ImportTestCase(BaseCourseTestCase):
         self.assertEqual(node.attrib['org'], ORG)
 
         # Does the course still have unicorns?
-        with descriptor.runtime.export_fs.open('course/{url_name}.xml'.format(url_name=url_name)) as f:
+        with export_fs.open('course/{url_name}.xml'.format(url_name=url_name)) as f:
             course_xml = etree.fromstring(f.read())
 
         self.assertEqual(course_xml.attrib['unicorn'], 'purple')
@@ -246,7 +245,7 @@ class ImportTestCase(BaseCourseTestCase):
 
         # Does the chapter tag now have a due attribute?
         # hardcoded path to child
-        with descriptor.runtime.export_fs.open('chapter/ch.xml') as f:
+        with export_fs.open('chapter/ch.xml') as f:
             chapter_xml = etree.fromstring(f.read())
         self.assertEqual(chapter_xml.tag, 'chapter')
         self.assertFalse('due' in chapter_xml.attrib)

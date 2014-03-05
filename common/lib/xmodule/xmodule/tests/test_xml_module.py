@@ -17,7 +17,7 @@ from xmodule.course_module import CourseDescriptor
 from xmodule.seq_module import SequenceDescriptor
 from xmodule.x_module import XModuleMixin
 
-from xmodule.tests import get_test_descriptor_system
+from xmodule.tests import TestRuntime
 from xmodule.tests.xml import XModuleXmlImportTest
 from xmodule.tests.xml.factories import CourseFactory, SequenceFactory, ProblemFactory
 
@@ -68,7 +68,7 @@ class InheritingFieldDataTest(unittest.TestCase):
         not_inherited = String(scope=Scope.settings, default="nothing")
 
     def setUp(self):
-        self.system = get_test_descriptor_system()
+        self.runtime = TestRuntime()
         self.all_blocks = {}
         self.system.get_block = self.all_blocks.get
         self.field_data = InheritingFieldData(
@@ -82,7 +82,7 @@ class InheritingFieldDataTest(unittest.TestCase):
         if usage_id is None:
             usage_id = "_auto%d" % len(self.all_blocks)
         scope_ids.usage_id = usage_id
-        block = self.system.construct_xblock_from_class(
+        block = self.runtime.construct_xblock_from_class(
             self.TestableInheritingXBlock,
             field_data=self.field_data,
             scope_ids=scope_ids,
@@ -242,7 +242,7 @@ class EditableMetadataFieldsTest(unittest.TestCase):
 
     # Start of helper methods
     def get_xml_editable_fields(self, field_data):
-        runtime = get_test_descriptor_system()
+        runtime = TestRuntime()
         return runtime.construct_xblock_from_class(
             XmlDescriptor,
             scope_ids=Mock(),
@@ -257,9 +257,8 @@ class EditableMetadataFieldsTest(unittest.TestCase):
                 non_editable_fields.append(TestModuleDescriptor.due)
                 return non_editable_fields
 
-        system = get_test_descriptor_system()
-        system.render_template = Mock(return_value="<div>Test Template HTML</div>")
-        return system.construct_xblock_from_class(TestModuleDescriptor, field_data=field_data, scope_ids=Mock())
+        runtime = TestRuntime()
+        return runtime.construct_xblock_from_class(TestModuleDescriptor, field_data=field_data, scope_ids=Mock())
 
     def assert_field_values(self, editable_fields, name, field, explicitly_set, value, default_value,
                             type='Generic', options=[]):
@@ -547,9 +546,6 @@ class TestXmlAttributes(XModuleXmlImportTest):
 
         root = SequenceFactory.build(policy={'days_early_for_beta': '2'})
         ProblemFactory.build(parent=root)
-
-        # InheritanceMixin will be used when processing the XML
-        assert_in(InheritanceMixin, root.xblock_mixins)
 
         seq = self.process_xml(root)
 

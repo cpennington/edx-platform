@@ -65,7 +65,7 @@ from xmodule.modulestore import inheritance, ModuleStoreWriteBase, Location, SPL
 
 from ..exceptions import ItemNotFoundError
 from .definition_lazy_loader import DefinitionLazyLoader
-from .caching_descriptor_system import CachingDescriptorSystem
+from .caching_descriptor_system import CachingDescriptorService
 from xblock.fields import Scope
 from xblock.runtime import Mixologist
 from bson.objectid import ObjectId
@@ -130,16 +130,11 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         self.error_tracker = error_tracker
         self.render_template = render_template
 
-        # TODO: Don't have a runtime just to generate the appropriate mixin classes (cpennington)
-        # This is only used by _partition_fields_by_scope, which is only needed because
-        # the split mongo store is used for item creation as well as item persistence
-        self.mixologist = Mixologist(self.xblock_mixins)
-
     def cache_items(self, system, base_block_ids, depth=0, lazy=True):
         '''
         Handles caching of items once inheritance and any other one time
         per course per fetch operations are done.
-        :param system: a CachingDescriptorSystem
+        :param system: a CachingDescriptorService
         :param base_block_ids: list of block_ids to fetch
         :param depth: how deep below these to prefetch
         :param lazy: whether to fetch definitions or use placeholders
@@ -180,7 +175,7 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         '''
         system = self._get_cache(course_entry['structure']['_id'])
         if system is None:
-            system = CachingDescriptorSystem(
+            system = CachingDescriptorService(
                 modulestore=self,
                 course_entry=course_entry,
                 module_data={},
@@ -189,8 +184,6 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
                 error_tracker=self.error_tracker,
                 render_template=self.render_template,
                 resources_fs=None,
-                mixins=self.xblock_mixins,
-                select=self.xblock_select,
             )
             self._add_cache(course_entry['structure']['_id'], system)
             self.cache_items(system, block_ids, depth, lazy)
@@ -1496,7 +1489,7 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         """
         if fields is None:
             return {}
-        cls = self.mixologist.mix(XBlock.load_class(category, select=self.xblock_select))
+        cls = self.mixologist.mix(self.runtime.load_block_type(category))
         result = collections.defaultdict(dict)
         for field_name, value in fields.iteritems():
             field = getattr(cls, field_name)

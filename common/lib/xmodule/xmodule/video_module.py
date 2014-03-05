@@ -371,17 +371,18 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
         return editable_fields
 
     @classmethod
-    def from_xml(cls, xml_data, system, id_generator):
+    def from_xml(cls, xml_data, runtime, id_generator):
         """
         Creates an instance of this descriptor from the supplied xml_data.
         This may be overridden by subclasses
 
         xml_data: A string of xml that will be translated into data and children for
             this module
-        system: A DescriptorSystem for interacting with external resources
+        system: A DescriptorService for interacting with external resources
         org and course are optional strings that will be used in the generated modules
             url identifiers
         """
+        descr_service = runtime.service(None, 'xdescriptor')
         xml_object = etree.fromstring(xml_data)
         url_name = xml_object.get('url_name', xml_object.get('slug'))
         block_type = 'video'
@@ -389,11 +390,11 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
         usage_id = id_generator.create_usage(definition_id)
         if is_pointer_tag(xml_object):
             filepath = cls._format_filepath(xml_object.tag, name_to_pathname(url_name))
-            xml_data = etree.tostring(cls.load_file(filepath, system.resources_fs, usage_id))
+            xml_data = etree.tostring(cls.load_file(filepath, descr_service.resources_fs, usage_id))
         field_data = cls._parse_video_xml(xml_data)
         kvs = InheritanceKeyValueStore(initial_values=field_data)
         field_data = KvsFieldData(kvs)
-        video = system.construct_xblock_from_class(
+        video = runtime.construct_xblock_from_class(
             cls,
             # We're loading a descriptor, so student_id is meaningless
             # We also don't have separate notions of definition and usage ids yet,

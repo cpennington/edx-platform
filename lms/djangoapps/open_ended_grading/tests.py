@@ -16,16 +16,16 @@ from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds
 
 from xmodule import peer_grading_module
+from xmodule.x_module import ModuleService
 from xmodule.error_module import ErrorDescriptor
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.open_ended_grading_classes import peer_grading_service, controller_query_service
-from xmodule.tests import test_util_open_ended
+from xmodule.tests import test_util_open_ended, TestRuntime, get_test_descriptor_system, get_test_system
 
 from courseware.tests import factories
 from courseware.tests.helpers import LoginEnrollmentTestCase, check_for_get_code, check_for_post_code
 from courseware.tests.modulestore_config import TEST_DATA_MIXED_MODULESTORE
-from lms.lib.xblock.runtime import LmsModuleSystem
 from student.roles import CourseStaffRole
 from edxmako.shortcuts import render_to_string
 from student.models import unique_id_for_user
@@ -275,20 +275,17 @@ class TestPeerGradingService(ModuleStoreTestCase, LoginEnrollmentTestCase):
         location = "i4x://edX/toy/peergrading/init"
         field_data = DictFieldData({'data': "<peergrading/>", 'location': location, 'category':'peergrading'})
         self.mock_service = peer_grading_service.MockPeerGradingService()
-        self.system = LmsModuleSystem(
-            static_url=settings.STATIC_URL,
-            track_function=None,
-            get_module=None,
-            render_template=render_to_string,
-            replace_urls=None,
-            s3_interface=test_util_open_ended.S3_INTERFACE,
-            open_ended_grading_interface=test_util_open_ended.OPEN_ENDED_GRADING_INTERFACE,
-            mixins=settings.XBLOCK_MIXINS,
-            error_descriptor_class=ErrorDescriptor,
-            descriptor_runtime=None,
-        )
-        self.descriptor = peer_grading_module.PeerGradingDescriptor(self.system, field_data, ScopeIds(None, None, None, None))
-        self.descriptor.xmodule_runtime = self.system
+        self.runtime = TestRuntime()
+
+        module_service = get_test_system()
+        module_service.s3_interface=test_util_open_ended.S3_INTERFACE
+        module_service.open_ended_grading_interface=test_util_open_ended.OPEN_ENDED_GRADING_INTERFACE
+        self.runtime.bind_service(None, 'xmodule', module_service)
+
+        descriptor_service = get_test_descriptor_system()
+        self.runtime.bind_service(None, 'xdescriptor', descriptor_service)
+
+        self.descriptor = peer_grading_module.PeerGradingDescriptor(self.runtime, field_data, ScopeIds(None, None, None, None))
         self.peer_module = self.descriptor
         self.peer_module.peer_gs = self.mock_service
         self.logout()

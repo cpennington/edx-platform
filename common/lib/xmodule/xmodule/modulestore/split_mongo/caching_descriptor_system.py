@@ -1,6 +1,6 @@
 import sys
 import logging
-from xmodule.mako_module import MakoDescriptorSystem
+from xmodule.mako_module import MakoDescriptorService
 from xmodule.modulestore.locator import BlockUsageLocator, LocalId
 from xmodule.error_module import ErrorDescriptor
 from xmodule.errortracker import exc_info_to_str
@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 class SplitMongoIdReader(IdReader):
     """
     An :class:`~xblock.runtime.IdReader` associated with a particular
-    :class:`.CachingDescriptorSystem`.
+    :class:`.CachingDescriptorService`.
     """
     def __init__(self, system):
         self.system = system
@@ -30,7 +30,7 @@ class SplitMongoIdReader(IdReader):
         return definition['category']
 
 
-class CachingDescriptorSystem(MakoDescriptorSystem):
+class CachingDescriptorService(MakoDescriptorService):
     """
     A system that has a cache of a course version's json that it will use to load modules
     from, with a backup of calling to the underlying modulestore for more data.
@@ -51,7 +51,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem):
         module_data: a dict mapping Location -> json that was cached from the
             underlying modulestore
         """
-        super(CachingDescriptorSystem, self).__init__(
+        super(CachingDescriptorService, self).__init__(
             id_reader=SplitMongoIdReader(self),
             field_data=None,
             load_item=self._load_item,

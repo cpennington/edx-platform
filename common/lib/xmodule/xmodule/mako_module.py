@@ -1,9 +1,9 @@
-from .x_module import XModuleDescriptor, DescriptorSystem
+from .x_module import XModuleDescriptor, DescriptorService
 
 
-class MakoDescriptorSystem(DescriptorSystem):
+class MakoDescriptorService(DescriptorService):
     def __init__(self, render_template, **kwargs):
-        super(MakoDescriptorSystem, self).__init__(**kwargs)
+        super(MakoDescriptorService, self).__init__(**kwargs)
 
         self.render_template = render_template
 
@@ -22,10 +22,14 @@ class MakoModuleDescriptor(XModuleDescriptor):
 
     def __init__(self, *args, **kwargs):
         super(MakoModuleDescriptor, self).__init__(*args, **kwargs)
-        if getattr(self.runtime, 'render_template', None) is None:
-            raise TypeError('{runtime} must have a render_template function'
-                            ' in order to use a MakoDescriptor'.format(
-                    runtime=self.runtime))
+
+        descriptor_service = self.runtime.service(self, 'xdescriptor')
+        if getattr(descriptor_service, 'render_template', None) is None:
+            raise TypeError(
+                '{service} must have a render_template function in order to use a MakoDescriptor'.format(
+                    service=descriptor_service
+                )
+            )
 
     def get_context(self):
         """

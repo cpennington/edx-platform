@@ -17,11 +17,12 @@ def process_includes(fn):
     are supposed to include
     """
     @wraps(fn)
-    def from_xml(cls, xml_data, system, id_generator):
+    def from_xml(cls, xml_data, runtime, id_generator):
+        descr_service = runtime.service(None, 'xdescriptor')
         xml_object = etree.fromstring(xml_data)
         next_include = xml_object.find('include')
         while next_include is not None:
-            system.error_tracker("WARNING: the <include> tag is deprecated, and will go away.")
+            descr_service.error_tracker("WARNING: the <include> tag is deprecated, and will go away.")
             file = next_include.get('file')
             parent = next_include.getparent()
 
@@ -29,7 +30,7 @@ def process_includes(fn):
                 continue
 
             try:
-                ifp = system.resources_fs.open(file)
+                ifp = descr_service.resources_fs.open(file)
                 # read in and convert to XML
                 incxml = etree.XML(ifp.read())
 
@@ -40,7 +41,7 @@ def process_includes(fn):
                 msg = "Error in problem xml include: %s" % (
                     etree.tostring(next_include, pretty_print=True))
                 # tell the tracker
-                system.error_tracker(msg)
+                descr_service.error_tracker(msg)
 
                 # work around
                 parent = next_include.getparent()
@@ -55,42 +56,44 @@ def process_includes(fn):
             parent.remove(next_include)
 
             next_include = xml_object.find('include')
-        return fn(cls, etree.tostring(xml_object), system, id_generator)
+        return fn(cls, etree.tostring(xml_object), runtime, id_generator)
     return from_xml
 
 
 class SemanticSectionDescriptor(XModuleDescriptor):
     @classmethod
     @process_includes
-    def from_xml(cls, xml_data, system, id_generator):
+    def from_xml(cls, xml_data, runtime, id_generator):
         """
         Removes sections with single child elements in favor of just embedding
         the child element
         """
+        descr_service = runtime.service(None, 'xdescriptor')
         xml_object = etree.fromstring(xml_data)
-        system.error_tracker("WARNING: the <{0}> tag is deprecated.  Please do not use in new content."
+        descr_service.error_tracker("WARNING: the <{0}> tag is deprecated.  Please do not use in new content."
                              .format(xml_object.tag))
 
         if len(xml_object) == 1:
             for (key, val) in xml_object.items():
                 xml_object[0].set(key, val)
 
-            return system.process_xml(etree.tostring(xml_object[0]))
+            return descr_service.process_xml(etree.tostring(xml_object[0]))
         else:
             xml_object.tag = 'sequential'
-            return system.process_xml(etree.tostring(xml_object))
+            return descr_service.process_xml(etree.tostring(xml_object))
 
 
 class TranslateCustomTagDescriptor(XModuleDescriptor):
     @classmethod
-    def from_xml(cls, xml_data, system, id_generator):
+    def from_xml(cls, xml_data, runtime, id_generator):
         """
         Transforms the xml_data from <$custom_tag attr="" attr=""/> to
         <customtag attr="" attr="" impl="$custom_tag"/>
         """
+        descr_service = runtime.service(None, 'xdescriptor')
 
         xml_object = etree.fromstring(xml_data)
-        system.error_tracker('WARNING: the <{tag}> tag is deprecated.  '
+        descr_service.error_tracker('WARNING: the <{tag}> tag is deprecated.  '
                              'Instead, use <customtag impl="{tag}" attr1="..." attr2="..."/>. '
                              .format(tag=xml_object.tag))
 
@@ -98,4 +101,4 @@ class TranslateCustomTagDescriptor(XModuleDescriptor):
         xml_object.tag = 'customtag'
         xml_object.attrib['impl'] = tag
 
-        return system.process_xml(etree.tostring(xml_object))
+        return descr_service.process_xml(etree.tostring(xml_object))

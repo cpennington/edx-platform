@@ -39,7 +39,6 @@ class TestMigration(unittest.TestCase):
         'default_class': 'xmodule.raw_module.RawDescriptor',
         'fs_root': '',
         'render_template': mock.Mock(return_value=""),
-        'xblock_mixins': (InheritanceMixin,)
     }
 
     def setUp(self):

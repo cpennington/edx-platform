@@ -32,9 +32,6 @@ from path import path
 
 from .discussionsettings import *
 
-from lms.lib.xblock.mixin import LmsBlockMixin
-from xmodule.modulestore.inheritance import InheritanceMixin
-from xmodule.x_module import XModuleMixin, only_xmodules
 
 ################################### FEATURES ###################################
 # The display name of the platform to be used in templates/emails/etc.
@@ -414,9 +411,8 @@ DOC_STORE_CONFIG = {
 
 ############# XBlock Configuration ##########
 
-# This should be moved into an XBlock Runtime/Application object
-# once the responsibility of XBlock creation is moved out of modulestore - cpennington
-XBLOCK_MIXINS = (LmsBlockMixin, InheritanceMixin, XModuleMixin)
+from lms.lib.xblock.runtime import LmsRuntime
+from xmodule.x_module import only_xmodules
 
 # Only allow XModules in the LMS
 XBLOCK_SELECT_FUNCTION = only_xmodules
@@ -425,6 +421,8 @@ XBLOCK_SELECT_FUNCTION = only_xmodules
 # either by uncommenting them here, or adding them to your private.py
 # from xmodule.x_module import prefer_xmodules
 # XBLOCK_SELECT_FUNCTION = prefer_xmodules
+
+XBLOCK_RUNTIME = LmsRuntime
 
 #################### Python sandbox ############################################
 
@@ -724,6 +722,9 @@ MIDDLEWARE_CLASSES = (
 
     # for expiring inactive sessions
     'session_inactivity_timeout.middleware.SessionInactivityTimeout',
+
+    # Sets up XBlock runtimes
+    'django_xblock.middleware.PerRequestRuntimeMiddleware',
 )
 
 ############################### Pipeline #######################################

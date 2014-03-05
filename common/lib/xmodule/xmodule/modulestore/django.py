@@ -12,6 +12,7 @@ import re
 from django.conf import settings
 from django.core.cache import get_cache, InvalidCacheBackendError
 from django.dispatch import Signal
+from django_xblock.middleware import PerRequestRuntimeMiddleware
 from xmodule.modulestore.loc_mapper_store import LocMapperStore
 from xmodule.util.django import get_current_request_hostname
 
@@ -65,9 +66,9 @@ def create_modulestore_instance(engine, doc_store_config, options):
         metadata_inheritance_cache_subsystem=metadata_inheritance_cache,
         request_cache=request_cache,
         modulestore_update_signal=Signal(providing_args=['modulestore', 'course_id', 'location']),
-        xblock_mixins=getattr(settings, 'XBLOCK_MIXINS', ()),
         xblock_select=getattr(settings, 'XBLOCK_SELECT_FUNCTION', None),
         doc_store_config=doc_store_config,
+        build_runtime=PerRequestRuntimeMiddleware.runtime,
         **_options
     )
 

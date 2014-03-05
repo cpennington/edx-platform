@@ -77,34 +77,34 @@ class InstructorTaskModuleSubmitTest(InstructorTaskModuleTestCase):
 
     def test_submit_nonexistent_modules(self):
         # confirm that a rescore of a non-existent module returns an exception
-        problem_url = InstructorTaskModuleTestCase.problem_location("NonexistentProblem")
+        usage_id = InstructorTaskModuleTestCase.usage_id("NonexistentProblem")
         course_id = self.course.id
         request = None
         with self.assertRaises(ItemNotFoundError):
-            submit_rescore_problem_for_student(request, course_id, problem_url, self.student)
+            submit_rescore_problem_for_student(request, course_id, usage_id, self.student)
         with self.assertRaises(ItemNotFoundError):
-            submit_rescore_problem_for_all_students(request, course_id, problem_url)
+            submit_rescore_problem_for_all_students(request, course_id, usage_id)
         with self.assertRaises(ItemNotFoundError):
-            submit_reset_problem_attempts_for_all_students(request, course_id, problem_url)
+            submit_reset_problem_attempts_for_all_students(request, course_id, usage_id)
         with self.assertRaises(ItemNotFoundError):
-            submit_delete_problem_state_for_all_students(request, course_id, problem_url)
+            submit_delete_problem_state_for_all_students(request, course_id, usage_id)
 
     def test_submit_nonrescorable_modules(self):
         # confirm that a rescore of an existent but unscorable module returns an exception
         # (Note that it is easier to test a scoreable but non-rescorable module in test_tasks,
         # where we are creating real modules.)
-        problem_url = self.problem_section.location.url()
+        usage_id = self.problem_section.scope_ids.usage_id
         course_id = self.course.id
         request = None
         with self.assertRaises(NotImplementedError):
-            submit_rescore_problem_for_student(request, course_id, problem_url, self.student)
+            submit_rescore_problem_for_student(request, usage_id, self.student)
         with self.assertRaises(NotImplementedError):
-            submit_rescore_problem_for_all_students(request, course_id, problem_url)
+            submit_rescore_problem_for_all_students(request, usage_id)
 
     def _test_submit_with_long_url(self, task_function, student=None):
         problem_url_name = 'x' * 255
         self.define_option_problem(problem_url_name)
-        location = InstructorTaskModuleTestCase.problem_location(problem_url_name)
+        location = InstructorTaskModuleTestCase.usage_id(problem_url_name)
         with self.assertRaises(ValueError):
             if student is not None:
                 task_function(self.create_task_request(self.instructor), self.course.id, location, student)
@@ -127,7 +127,7 @@ class InstructorTaskModuleSubmitTest(InstructorTaskModuleTestCase):
         # tests submit, and then tests a second identical submission.
         problem_url_name = 'H1P1'
         self.define_option_problem(problem_url_name)
-        location = InstructorTaskModuleTestCase.problem_location(problem_url_name)
+        location = InstructorTaskModuleTestCase.usage_id(problem_url_name)
         if student is not None:
             instructor_task = task_function(self.create_task_request(self.instructor),
                                             self.course.id, location, student)

@@ -17,8 +17,8 @@ from path import path
 from xmodule.error_module import ErrorDescriptor
 from xmodule.errortracker import make_error_tracker, exc_info_to_str
 from xmodule.course_module import CourseDescriptor
-from xmodule.mako_module import MakoDescriptorSystem
-from xmodule.x_module import XMLParsingSystem, policy_key
+from xmodule.mako_module import MakoDescriptorService
+from xmodule.x_module import XMLParsingService, policy_key
 
 from xblock.fields import ScopeIds
 from xblock.field_data import DictFieldData
@@ -46,7 +46,7 @@ def clean_out_mako_templating(xml_string):
     return xml_string
 
 
-class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
+class ImportSystem(XMLParsingService, MakoDescriptorService):
     def __init__(self, xmlstore, course_id, course_dir,
                  error_tracker, parent_tracker,
                  load_error_modules=True, id_reader=None, **kwargs):
@@ -170,7 +170,7 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
 
                 descriptor = create_block_from_xml(
                     etree.tostring(xml_data, encoding='unicode'),
-                    self,
+                    self.runtime,
                     id_generator,
                 )
             except Exception as err:
@@ -187,7 +187,7 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
                     # Normally, we don't want lots of exception traces in our logs from common
                     # content problems.  But if you're debugging the xml loading code itself,
                     # uncomment the next line.
-                    # exc_info=True
+                    exc_info=True
                 )
 
                 msg = msg % (unicode(err)[:200])
@@ -196,7 +196,7 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
                 err_msg = msg + "\n" + exc_info_to_str(sys.exc_info())
                 descriptor = ErrorDescriptor.from_xml(
                     xml,
-                    self,
+                    self.runtime,
                     id_generator,
                     err_msg
                 )
@@ -231,7 +231,6 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
             render_template=render_template,
             error_tracker=error_tracker,
             process_xml=process_xml,
-            id_reader=id_reader,
             **kwargs
         )
 
@@ -275,14 +274,14 @@ class CourseLocationGenerator(IdGenerator):
         return location
 
 
-def create_block_from_xml(xml_data, system, id_generator):
+def create_block_from_xml(xml_data, runtime, id_generator):
     """
     Create an XBlock instance from XML data.
 
     Args:
         xml_data (string): A string containing valid xml.
-        system (XMLParsingSystem): The :class:`.XMLParsingSystem` used to connect the block
-            to the outside world.
+        runtime (Runtime): A :class:`~xblock.runtime.Runtime` to construct the blocks
+            with during parsing.
         id_generator (IdGenerator): An :class:`~xblock.runtime.IdGenerator` that
             will be used to construct the usage_id and definition_id for the block.
 
@@ -291,8 +290,8 @@ def create_block_from_xml(xml_data, system, id_generator):
 
     """
     node = etree.fromstring(xml_data)
-    raw_class = system.load_block_type(node.tag)
-    xblock_class = system.mixologist.mix(raw_class)
+    raw_class = runtime.load_block_type(node.tag)
+    xblock_class = runtime.mixologist.mix(raw_class)
 
     # leave next line commented out - useful for low-level debugging
     # log.debug('[create_block_from_xml] tag=%s, class=%s' % (node.tag, xblock_class))
@@ -303,7 +302,7 @@ def create_block_from_xml(xml_data, system, id_generator):
     usage_id = id_generator.create_usage(def_id)
 
     scope_ids = ScopeIds(None, block_type, def_id, usage_id)
-    xblock = xblock_class.parse_xml(node, system, scope_ids, id_generator)
+    xblock = xblock_class.parse_xml(node, runtime, scope_ids, id_generator)
     return xblock
 
 
@@ -362,6 +361,7 @@ class XMLModuleStore(ModuleStoreReadBase):
         """
         super(XMLModuleStore, self).__init__(**kwargs)
 
+
         self.data_dir = path(data_dir)
         self.modules = defaultdict(dict)  # course_id -> dict(location -> XBlock)
         self.courses = {}  # course_dir -> XBlock for the course
@@ -382,6 +382,7 @@ class XMLModuleStore(ModuleStoreReadBase):
         # All field data will be stored in an inheriting field data.
         self.field_data = inheriting_field_data(kvs=DictKeyValueStore())
 
+
         # If we are specifically asked for missing courses, that should
         # be an error.  If we are asked for "all" courses, find the ones
         # that have a course.xml. We sort the dirs in alpha order so we always
@@ -392,6 +393,10 @@ class XMLModuleStore(ModuleStoreReadBase):
                                   os.path.exists(self.data_dir / d / "course.xml")])
         for course_dir in course_dirs:
             self.try_load_course(course_dir, course_ids)
+
+    @property
+    def runtime(self):
+        return self.build_runtime(self.__class__.__name__, id_reader=LocationReader(), field_data=self.field_data)
 
     def try_load_course(self, course_dir, course_ids=None):
         '''
@@ -522,7 +527,7 @@ class XMLModuleStore(ModuleStoreReadBase):
                 """
                 return policy.get(policy_key(usage_id), {})
 
-            system = ImportSystem(
+            service = ImportSystem(
                 xmlstore=self,
                 course_id=course_id,
                 course_dir=course_dir,
@@ -530,13 +535,11 @@ class XMLModuleStore(ModuleStoreReadBase):
                 parent_tracker=self.parent_trackers[course_id],
                 load_error_modules=self.load_error_modules,
                 get_policy=get_policy,
-                mixins=self.xblock_mixins,
-                default_class=self.default_class,
-                select=self.xblock_select,
-                field_data=self.field_data,
             )
 
-            course_descriptor = system.process_xml(etree.tostring(course_data, encoding='unicode'))
+            self.runtime.bind_service(None, 'xdescriptor', service)
+
+            course_descriptor = service.process_xml(etree.tostring(course_data, encoding='unicode'))
 
             # If we fail to load the course, then skip the rest of the loading steps
             if isinstance(course_descriptor, ErrorDescriptor):
@@ -550,27 +553,27 @@ class XMLModuleStore(ModuleStoreReadBase):
 
             # now import all pieces of course_info which is expected to be stored
             # in <content_dir>/info or <content_dir>/info/<url_name>
-            self.load_extra_content(system, course_descriptor, 'course_info', self.data_dir / course_dir / 'info', course_dir, url_name)
+            self.load_extra_content(service, course_descriptor, 'course_info', self.data_dir / course_dir / 'info', course_dir, url_name)
 
             # now import all static tabs which are expected to be stored in
             # in <content_dir>/tabs or <content_dir>/tabs/<url_name>
-            self.load_extra_content(system, course_descriptor, 'static_tab', self.data_dir / course_dir / 'tabs', course_dir, url_name)
+            self.load_extra_content(service, course_descriptor, 'static_tab', self.data_dir / course_dir / 'tabs', course_dir, url_name)
 
-            self.load_extra_content(system, course_descriptor, 'custom_tag_template', self.data_dir / course_dir / 'custom_tags', course_dir, url_name)
+            self.load_extra_content(service, course_descriptor, 'custom_tag_template', self.data_dir / course_dir / 'custom_tags', course_dir, url_name)
 
-            self.load_extra_content(system, course_descriptor, 'about', self.data_dir / course_dir / 'about', course_dir, url_name)
+            self.load_extra_content(service, course_descriptor, 'about', self.data_dir / course_dir / 'about', course_dir, url_name)
 
             log.debug('========> Done with course import from {0}'.format(course_dir))
             return course_descriptor
 
-    def load_extra_content(self, system, course_descriptor, category, base_dir, course_dir, url_name):
-        self._load_extra_content(system, course_descriptor, category, base_dir, course_dir)
+    def load_extra_content(self, service, course_descriptor, category, base_dir, course_dir, url_name):
+        self._load_extra_content(service, course_descriptor, category, base_dir, course_dir)
 
         # then look in a override folder based on the course run
         if os.path.isdir(base_dir / url_name):
-            self._load_extra_content(system, course_descriptor, category, base_dir / url_name, course_dir)
+            self._load_extra_content(service, course_descriptor, category, base_dir / url_name, course_dir)
 
-    def _load_extra_content(self, system, course_descriptor, category, path, course_dir):
+    def _load_extra_content(self, service, course_descriptor, category, path, course_dir):
 
         for filepath in glob.glob(path / '*'):
             if not os.path.isfile(filepath):
@@ -585,7 +588,7 @@ class XMLModuleStore(ModuleStoreReadBase):
                     # tabs are referenced in policy.json through a 'slug' which is just the filename without the .html suffix
                     slug = os.path.splitext(os.path.basename(filepath))[0]
                     loc = course_descriptor.scope_ids.usage_id.replace(category=category, name=slug)
-                    module = system.construct_xblock(
+                    module = service.runtime.construct_xblock(
                         category,
                         # We're loading a descriptor, so student_id is meaningless
                         # We also don't have separate notions of definition and usage ids yet,
@@ -606,7 +609,7 @@ class XMLModuleStore(ModuleStoreReadBase):
                 except Exception, e:
                     logging.exception("Failed to load %s. Skipping... \
                             Exception: %s", filepath, unicode(e))
-                    system.error_tracker("ERROR: " + unicode(e))
+                    service.error_tracker("ERROR: " + unicode(e))
 
     def get_instance(self, course_id, location, depth=0):
         """

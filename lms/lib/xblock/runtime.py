@@ -5,8 +5,12 @@ Module implementing `xblock.runtime.Runtime` functionality for the LMS
 import re
 
 from django.core.urlresolvers import reverse
+from functools import wraps
+from xblock.runtime import KeyValueStore
+from xmodule.modulestore.inheritance import InheritanceMixin
+from xmodule.x_module import XModuleMixin, XModuleRuntime
 
-from xmodule.x_module import ModuleSystem
+from lms.lib.xblock.mixin import LmsBlockMixin
 
 
 def _quote_slashes(match):
@@ -58,14 +62,13 @@ def unquote_slashes(text):
     return re.sub(r'(;;|;_)', _unquote_slashes, text)
 
 
-class LmsHandlerUrls(object):
+class LmsRuntime(XModuleRuntime):
     """
-    A runtime mixin that provides a handler_url function that routes
-    to the LMS' xblock handler view.
+    """
+    def __init__(self, **kwargs):
+        kwargs['mixins'] = (LmsBlockMixin, InheritanceMixin, XModuleMixin)
+        super(LmsRuntime, self).__init__(**kwargs)
 
-    This must be mixed in to a runtime that already accepts and stores
-    a course_id
-    """
     # pylint: disable=unused-argument
     # pylint: disable=no-member
     def handler_url(self, block, handler_name, suffix='', query='', thirdparty=False):
@@ -83,7 +86,6 @@ class LmsHandlerUrls(object):
             view_name = 'xblock_handler_noauth'
 
         url = reverse(view_name, kwargs={
-            'course_id': self.course_id,
             'usage_id': quote_slashes(unicode(block.scope_ids.usage_id).encode('utf-8')),
             'handler': handler_name,
             'suffix': suffix,
@@ -108,9 +110,9 @@ class LmsHandlerUrls(object):
             'uri': uri,
         })
 
+    def resource_url(self, resource):
+        raise NotImplementedError('Deprecated')
 
-class LmsModuleSystem(LmsHandlerUrls, ModuleSystem):  # pylint: disable=abstract-method
-    """
-    ModuleSystem specialized to the LMS
-    """
-    pass
+    def publish(self, block, event, custom_user=None):
+        """A function that allows XModules to publish events. This only supports grade changes right now."""
+        self.service(block, 'xmodule').publish(block, event, custom_user=custom_user)

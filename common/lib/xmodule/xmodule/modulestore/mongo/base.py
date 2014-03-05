@@ -24,7 +24,7 @@ from path import path
 
 from importlib import import_module
 from xmodule.errortracker import null_error_tracker, exc_info_to_str
-from xmodule.mako_module import MakoDescriptorSystem
+from xmodule.mako_module import MakoDescriptorService
 from xmodule.error_module import ErrorDescriptor
 from xblock.runtime import KvsFieldData
 from xblock.exceptions import InvalidScopeError
@@ -120,7 +120,7 @@ class MongoKeyValueStore(InheritanceKeyValueStore):
             return False
 
 
-class CachingDescriptorSystem(MakoDescriptorSystem):
+class CachingDescriptorService(MakoDescriptorService):
     """
     A system that has a cache of module json that it will use to load modules
     from, with a backup of calling to the underlying modulestore for more data
@@ -137,16 +137,14 @@ class CachingDescriptorSystem(MakoDescriptorSystem):
         default_class: The default_class to use when loading an
             XModuleDescriptor from the module_data
 
-        resources_fs: a filesystem, as per MakoDescriptorSystem
+        resources_fs: a filesystem, as per MakoDescriptorService
 
         error_tracker: a function that logs errors for later display to users
 
         render_template: a function for rendering templates, as per
-            MakoDescriptorSystem
+            MakoDescriptorService
         """
-        super(CachingDescriptorSystem, self).__init__(
-            id_reader=LocationReader(),
-            field_data=None,
+        super(CachingDescriptorService, self).__init__(
             load_item=self.load_item,
             **kwargs
         )
@@ -175,7 +173,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem):
             # load the module and apply the inherited metadata
             try:
                 category = json_data['location']['category']
-                class_ = self.load_block_type(category)
+                class_ = self.runtime.load_block_type(category)
 
                 definition = json_data.get('definition', {})
                 metadata = json_data.get('metadata', {})
@@ -192,7 +190,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem):
 
                 field_data = KvsFieldData(kvs)
                 scope_ids = ScopeIds(None, category, location, location)
-                module = self.construct_xblock_from_class(class_, scope_ids, field_data)
+                module = self.runtime.construct_xblock_from_class(class_, scope_ids, field_data)
                 if self.cached_metadata is not None:
                     # parent container pointers don't differentiate between draft and non-draft
                     # so when we do the lookup, we should do so with a non-draft location
@@ -209,7 +207,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem):
                 log.warning("Failed to load descriptor", exc_info=True)
                 return ErrorDescriptor.from_json(
                     json_data,
-                    self,
+                    self.runtime,
                     json_data['location'],
                     error_msg=exc_info_to_str(sys.exc_info())
                 )
@@ -313,6 +311,10 @@ class MongoModuleStore(ModuleStoreWriteBase):
         self.error_tracker = error_tracker
         self.render_template = render_template
         self.ignore_write_events_on_courses = []
+
+    @property
+    def runtime(self):
+        return self.build_runtime(self.__class__.__name__, id_reader=LocationReader, field_data=None)
 
     def compute_metadata_inheritance_tree(self, location):
         '''
@@ -500,7 +502,7 @@ class MongoModuleStore(ModuleStoreWriteBase):
 
         # TODO (cdodge): When the 'split module store' work has been completed, we should remove
         # the 'metadata_inheritance_tree' parameter
-        system = CachingDescriptorSystem(
+        service = CachingDescriptorService(
             modulestore=self,
             module_data=data_cache,
             default_class=self.default_class,
@@ -508,10 +510,9 @@ class MongoModuleStore(ModuleStoreWriteBase):
             error_tracker=self.error_tracker,
             render_template=self.render_template,
             cached_metadata=cached_metadata,
-            mixins=self.xblock_mixins,
-            select=self.xblock_select,
         )
-        return system.load_item(location)
+        self.runtime.bind_service(location, 'xdescriptor', service)
+        return service.load_item(location)
 
     def _load_items(self, items, depth=0):
         """
@@ -631,7 +632,7 @@ class MongoModuleStore(ModuleStoreWriteBase):
         if metadata is None:
             metadata = {}
         if system is None:
-            system = CachingDescriptorSystem(
+            system = CachingDescriptorService(
                 modulestore=self,
                 module_data={},
                 default_class=self.default_class,
@@ -639,17 +640,17 @@ class MongoModuleStore(ModuleStoreWriteBase):
                 error_tracker=self.error_tracker,
                 render_template=self.render_template,
                 cached_metadata={},
-                mixins=self.xblock_mixins,
-                select=self.xblock_select,
             )
-        xblock_class = system.load_block_type(location.category)
+
+        self.runtime.bind_service(location, 'xdescriptor', system)
+        xblock_class = self.runtime.load_block_type(location.category)
         if definition_data is None:
             if hasattr(xblock_class, 'data') and xblock_class.data.default is not None:
                 definition_data = xblock_class.data.default
             else:
                 definition_data = {}
         dbmodel = self._create_new_field_data(location.category, location, definition_data, metadata)
-        xmodule = system.construct_xblock_from_class(
+        xmodule = self.runtime.construct_xblock_from_class(
             xblock_class,
             # We're loading a descriptor, so student_id is meaningless
             # We also don't have separate notions of definition and usage ids yet,

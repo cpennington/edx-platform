@@ -195,11 +195,6 @@ MIDDLEWARE_CLASSES = (
 )
 
 ############# XBlock Configuration ##########
-
-# This should be moved into an XBlock Runtime/Application object
-# once the responsibility of XBlock creation is moved out of modulestore - cpennington
-XBLOCK_MIXINS = (LmsBlockMixin, CmsBlockMixin, InheritanceMixin, XModuleMixin)
-
 # Only allow XModules in Studio
 XBLOCK_SELECT_FUNCTION = only_xmodules
 

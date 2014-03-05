@@ -267,15 +267,16 @@ class XmlDescriptor(XModuleDescriptor):
                 metadata[attr] = value
 
     @classmethod
-    def from_xml(cls, xml_data, system, id_generator):
+    def from_xml(cls, xml_data, runtime, id_generator):
         """
         Creates an instance of this descriptor from the supplied xml_data.
         This may be overridden by subclasses
 
         xml_data: A string of xml that will be translated into data and children for
             this module
-        system: A DescriptorSystem for interacting with external resources
+        service: A DescriptorService for interacting with external resources
         """
+        descr_service = runtime.service(None, 'xdescriptor')
 
         xml_object = etree.fromstring(xml_data)
         # VS[compat] -- just have the url_name lookup, once translation is done
@@ -288,12 +289,12 @@ class XmlDescriptor(XModuleDescriptor):
             # new style:
             # read the actual definition file--named using url_name.replace(':','/')
             filepath = cls._format_filepath(xml_object.tag, name_to_pathname(url_name))
-            definition_xml = cls.load_file(filepath, system.resources_fs, def_id)
+            definition_xml = cls.load_file(filepath, descr_service.resources_fs, def_id)
         else:
             definition_xml = xml_object
             filepath = None
 
-        definition, children = cls.load_definition(definition_xml, system, def_id)  # note this removes metadata
+        definition, children = cls.load_definition(definition_xml, descr_service, def_id)  # note this removes metadata
 
         # VS[compat] -- make Ike's github preview links work in both old and
         # new file layouts
@@ -314,7 +315,7 @@ class XmlDescriptor(XModuleDescriptor):
                 metadata['definition_metadata_err'] = str(err)
 
         # Set/override any metadata specified by policy
-        cls.apply_policy(metadata, system.get_policy(usage_id))
+        cls.apply_policy(metadata, descr_service.get_policy(usage_id))
 
         field_data = {}
         field_data.update(metadata)
@@ -325,7 +326,9 @@ class XmlDescriptor(XModuleDescriptor):
         kvs = InheritanceKeyValueStore(initial_values=field_data)
         field_data = KvsFieldData(kvs)
 
-        return system.construct_xblock_from_class(
+        runtime.bind_service(usage_id, 'xdescriptor', descr_service)
+
+        return runtime.construct_xblock_from_class(
             cls,
             # We're loading a descriptor, so student_id is meaningless
             ScopeIds(None, xml_object.tag, def_id, usage_id),
@@ -363,9 +366,9 @@ class XmlDescriptor(XModuleDescriptor):
         resource_fs is a pyfilesystem object (from the fs package)
         """
 
-        # Set up runtime.export_fs so that it's available through future
+        # Set up self.service.export_fs so that it's available through future
         # uses of the pure xblock add_xml_to_node api
-        self.runtime.export_fs = resource_fs
+        self.service.export_fs = resource_fs
 
         # Get the definition
         xml_object = self.definition_to_xml(resource_fs)

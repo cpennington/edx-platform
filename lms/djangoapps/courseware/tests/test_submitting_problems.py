@@ -65,18 +65,18 @@ class TestSubmittingProblems(ModuleStoreTestCase, LoginEnrollmentTestCase):
         """
         self.course = modulestore().get_instance(self.course.id, self.course.location)
 
-    def problem_location(self, problem_url_name):
+    def usage_id(self, problem_url_name):
         """
-        Returns the url of the problem given the problem's name
+        Returns the usage id of the problem given the problem's name
         """
 
         return "i4x://" + self.course.org + "/{}/problem/{}".format(self.COURSE_SLUG, problem_url_name)
 
-    def modx_url(self, problem_location, dispatch):
+    def modx_url(self, usage_id, dispatch):
         """
         Return the url needed for the desired action.
 
-        problem_location: location of the problem on which we want some action
+        usage_id: usage_id of the problem on which we want some action
 
         dispatch: the the action string that gets passed to the view as a kwarg
             example: 'check_problem' for having responses processed
@@ -84,8 +84,7 @@ class TestSubmittingProblems(ModuleStoreTestCase, LoginEnrollmentTestCase):
         return reverse(
             'xblock_handler',
             kwargs={
-                'course_id': self.course.id,
-                'usage_id': quote_slashes(problem_location),
+                'usage_id': quote_slashes(usage_id),
                 'handler': 'xmodule_handler',
                 'suffix': dispatch,
             }
@@ -99,8 +98,8 @@ class TestSubmittingProblems(ModuleStoreTestCase, LoginEnrollmentTestCase):
             {'2_1': 'Correct', '2_2': 'Incorrect'}
         """
 
-        problem_location = self.problem_location(problem_url_name)
-        modx_url = self.modx_url(problem_location, 'problem_check')
+        usage_id = self.usage_id(problem_url_name)
+        modx_url = self.modx_url(usage_id, 'problem_check')
 
         answer_key_prefix = 'input_i4x-' + self.course.org + '-{}-problem-{}_'.format(self.COURSE_SLUG, problem_url_name)
 
@@ -114,8 +113,8 @@ class TestSubmittingProblems(ModuleStoreTestCase, LoginEnrollmentTestCase):
         """
         Reset specified problem for current user.
         """
-        problem_location = self.problem_location(problem_url_name)
-        modx_url = self.modx_url(problem_location, 'problem_reset')
+        usage_id = self.usage_id(problem_url_name)
+        modx_url = self.modx_url(usage_id, 'problem_reset')
         resp = self.client.post(modx_url)
         return resp
 
@@ -123,8 +122,8 @@ class TestSubmittingProblems(ModuleStoreTestCase, LoginEnrollmentTestCase):
         """
         Shows the answer to the current student.
         """
-        problem_location = self.problem_location(problem_url_name)
-        modx_url = self.modx_url(problem_location, 'problem_show')
+        usage_id = self.usage_id(problem_url_name)
+        modx_url = self.modx_url(usage_id, 'problem_show')
         resp = self.client.post(modx_url)
         return resp
 

@@ -47,12 +47,12 @@ class InstructorTaskTestCase(TestCase):
     def setUp(self):
         self.student = UserFactory.create(username="student", email="student@edx.org")
         self.instructor = UserFactory.create(username="instructor", email="instructor@edx.org")
-        self.problem_url = InstructorTaskTestCase.problem_location("test_urlname")
+        self.problem_url = InstructorTaskTestCase.usage_id("test_urlname")
 
     @staticmethod
-    def problem_location(problem_url_name):
+    def usage_id(problem_url_name):
         """
-        Create an internal location for a test problem.
+        Create an internal usage_id for a test problem.
         """
         return "i4x://{org}/{number}/problem/{problem_url_name}".format(org='edx',
                                                                         number='1.23x',
@@ -175,9 +175,9 @@ class InstructorTaskModuleTestCase(InstructorTaskCourseTestCase):
     the setup of a course and problem in order to access StudentModule state.
     """
     @staticmethod
-    def problem_location(problem_url_name):
+    def usage_id(problem_url_name):
         """
-        Create an internal location for a test problem.
+        Create an internal usage_id for a test problem.
         """
         if "i4x:" in problem_url_name:
             return problem_url_name
@@ -207,7 +207,7 @@ class InstructorTaskModuleTestCase(InstructorTaskCourseTestCase):
                         'correct_option': OPTION_2,
                         'num_responses': 2}
         problem_xml = factory.build_xml(**factory_args)
-        location = InstructorTaskTestCase.problem_location(problem_url_name)
+        location = InstructorTaskTestCase.usage_id(problem_url_name)
         item = self.module_store.get_instance(self.course.id, location)
         item.data = problem_xml
         self.module_store.update_item(item, '**replace_user**')

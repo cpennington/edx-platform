@@ -80,7 +80,7 @@ class ErrorDescriptor(ErrorFields, XModuleDescriptor):
         return u''
 
     @classmethod
-    def _construct(cls, system, contents, error_msg, location):
+    def _construct(cls, runtime, contents, error_msg, location):
         location = Location(location)
 
         if error_msg is None:
@@ -105,7 +105,7 @@ class ErrorDescriptor(ErrorFields, XModuleDescriptor):
             'location': location,
             'category': 'error'
         })
-        return system.construct_xblock_from_class(
+        return runtime.construct_xblock_from_class(
             cls,
             # The error module doesn't use scoped data, and thus doesn't need
             # real scope keys
@@ -120,9 +120,9 @@ class ErrorDescriptor(ErrorFields, XModuleDescriptor):
         }
 
     @classmethod
-    def from_json(cls, json_data, system, location, error_msg='Error not available'):
+    def from_json(cls, json_data, runtime, location, error_msg='Error not available'):
         return cls._construct(
-            system,
+            runtime,
             json.dumps(json_data, skipkeys=False, indent=4),
             error_msg,
             location=location
@@ -138,7 +138,7 @@ class ErrorDescriptor(ErrorFields, XModuleDescriptor):
         )
 
     @classmethod
-    def from_xml(cls, xml_data, system, id_generator,  # pylint: disable=arguments-differ
+    def from_xml(cls, xml_data, runtime, id_generator,  # pylint: disable=arguments-differ
                  error_msg=None):
         '''Create an instance of this descriptor from the supplied data.
 
@@ -148,6 +148,7 @@ class ErrorDescriptor(ErrorFields, XModuleDescriptor):
         Takes an extra, optional, parameter--the error that caused an
         issue.  (should be a string, or convert usefully into one).
         '''
+        desrc_service = runtime.service(None, 'xdescriptor')
 
         try:
             # If this is already an error tag, don't want to re-wrap it.
@@ -164,7 +165,7 @@ class ErrorDescriptor(ErrorFields, XModuleDescriptor):
             # Save the error to display later--overrides other problems
             error_msg = exc_info_to_str(sys.exc_info())
 
-        return cls._construct(system, xml_data, error_msg, location=id_generator.create_definition('error'))
+        return cls._construct(runtime, xml_data, error_msg, location=id_generator.create_definition('error'))
 
     def export_to_xml(self, resource_fs):
         '''

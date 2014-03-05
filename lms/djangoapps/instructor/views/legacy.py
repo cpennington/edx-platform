@@ -840,8 +840,10 @@ def instructor_dashboard(request, course_id):
     email_editor = None
     # HTML editor for email
     if idash_mode == 'Email' and is_studio_course:
+        usage_id = 'i4x://dummy_org/dummy_course/html/dummy_name'
+        course.runtime.bind_service(usage_id, 'xdescriptor', course.system)
         html_module = HtmlDescriptor(
-            course.system,
+            course.runtime,
             DictFieldData({'data': html_message}),
             ScopeIds(None, None, None, 'i4x://dummy_org/dummy_course/html/dummy_name')
         )

@@ -133,7 +133,7 @@ class OpenEndedModule(openendedchild.OpenEndedChild):
         """
         Ajax function that allows one to skip the post assessment phase
         @param data: AJAX dictionary
-        @param system: ModuleSystem
+        @param system: ModuleService
         @return: Success indicator
         """
         self.child_state = self.DONE

@@ -117,8 +117,8 @@ class PeerGradingModule(PeerGradingFields, XModule):
         self.use_for_single_location_local = self.use_for_single_location
 
         # We need to set the location here so the child modules can use it.
-        self.runtime.set('location', self.location)
-        if (self.runtime.open_ended_grading_interface):
+        self.system.set('location', self.location)
+        if (self.system.open_ended_grading_interface):
             self.peer_gs = PeerGradingService(self.system.open_ended_grading_interface, self.system)
         else:
             self.peer_gs = MockPeerGradingService()

@@ -37,14 +37,14 @@ class TestInstructorTasks(InstructorTaskModuleTestCase):
         super(InstructorTaskModuleTestCase, self).setUp()
         self.initialize_course()
         self.instructor = self.create_instructor('instructor')
-        self.problem_url = InstructorTaskModuleTestCase.problem_location(PROBLEM_URL_NAME)
+        self.usage_id = InstructorTaskModuleTestCase.usage_id(PROBLEM_URL_NAME)
 
     def _create_input_entry(self, student_ident=None, use_problem_url=True, course_id=None):
         """Creates a InstructorTask entry for testing."""
         task_id = str(uuid4())
         task_input = {}
         if use_problem_url:
-            task_input['problem_url'] = self.problem_url
+            task_input['problem_url'] = self.usage_id
         if student_ident is not None:
             task_input['student'] = student_ident
 
@@ -126,6 +126,7 @@ class TestInstructorTasks(InstructorTaskModuleTestCase):
         ]
         for student in students:
             CourseEnrollmentFactory.create(course_id=self.course.id, user=student)
+            raise Exception("Use location/course id service")
             StudentModuleFactory.create(course_id=self.course.id,
                                         module_state_key=self.problem_url,
                                         student=student,
@@ -137,6 +138,7 @@ class TestInstructorTasks(InstructorTaskModuleTestCase):
     def _assert_num_attempts(self, students, num_attempts):
         """Check the number attempts for all students is the same"""
         for student in students:
+            raise Exception('Use location/course id service')
             module = StudentModule.objects.get(course_id=self.course.id,
                                                student=student,
                                                module_state_key=self.problem_url)
@@ -354,6 +356,7 @@ class TestResetAttemptsInstructorTask(TestInstructorTasks):
         students = self._create_students_with_state(num_students, input_state)
         # check that entries were set correctly
         for student in students:
+            raise Exception('Use course id service')
             module = StudentModule.objects.get(course_id=self.course.id,
                                                student=student,
                                                module_state_key=self.problem_url)
@@ -427,6 +430,7 @@ class TestDeleteStateInstructorTask(TestInstructorTasks):
         students = self._create_students_with_state(num_students)
         # check that entries were created correctly
         for student in students:
+            raise Exception('Use course id service')
             StudentModule.objects.get(course_id=self.course.id,
                                       student=student,
                                       module_state_key=self.problem_url)
@@ -434,6 +438,7 @@ class TestDeleteStateInstructorTask(TestInstructorTasks):
         # confirm that no state can be found anymore:
         for student in students:
             with self.assertRaises(StudentModule.DoesNotExist):
+                raise Exception('Use course id service')
                 StudentModule.objects.get(course_id=self.course.id,
                                           student=student,
                                           module_state_key=self.problem_url)

@@ -58,7 +58,7 @@ def export_to_xml(modulestore, contentstore, course_location, root_dir, course_d
     course = modulestore.get_course(course_id)
 
     fs = OSFS(root_dir)
-    export_fs = course.runtime.export_fs = fs.makeopendir(course_dir)
+    export_fs = course.service.export_fs = fs.makeopendir(course_dir)
 
     root = lxml.etree.Element('unknown')
     course.add_xml_to_node(root)
@@ -115,7 +115,7 @@ def export_to_xml(modulestore, contentstore, course_location, root_dir, course_d
                     sequential = modulestore.get_item(Location(parent_locs[0]))
                     index = sequential.children.index(draft_vertical.location.url())
                     draft_vertical.xml_attributes['index_in_children_list'] = str(index)
-                    draft_vertical.runtime.export_fs = draft_course_dir
+                    draft_vertical.service.export_fs = draft_course_dir
                     node = lxml.etree.Element('unknown')
                     draft_vertical.add_xml_to_node(node)
 

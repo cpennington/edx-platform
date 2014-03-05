@@ -26,7 +26,7 @@ from xblock.fields import ScopeIds
 
 from xmodule.modulestore import Location
 
-from xmodule.x_module import ModuleSystem, XModule, XModuleDescriptor, DescriptorSystem
+from xmodule.x_module import ModuleService, XModule, XModuleDescriptor, DescriptorService
 from xmodule.annotatable_module import AnnotatableDescriptor
 from xmodule.capa_module import CapaDescriptor
 from xmodule.course_module import CourseDescriptor
@@ -97,13 +97,13 @@ def flatten(class_dict):
 
 
 @use_strategy(BUILD_STRATEGY)
-class ModuleSystemFactory(Factory):
+class ModuleServiceFactory(Factory):
     """
-    Factory to build a test ModuleSystem. Creation is
+    Factory to build a test ModuleService. Creation is
     performed by :func:`xmodule.tests.get_test_system`, so
     arguments for that function are valid factory attributes.
     """
-    FACTORY_FOR = ModuleSystem
+    FACTORY_FOR = ModuleService
 
     @classmethod
     def _build(cls, target_class, *args, **kwargs):  # pylint: disable=unused-argument
@@ -112,13 +112,13 @@ class ModuleSystemFactory(Factory):
 
 
 @use_strategy(BUILD_STRATEGY)
-class DescriptorSystemFactory(Factory):
+class DescriptorServiceFactory(Factory):
     """
-    Factory to build a test DescriptorSystem. Creation is
+    Factory to build a test DescriptorService. Creation is
     performed by :func:`xmodule.tests.get_test_descriptor_system`, so
     arguments for that function are valid factory attributes.
     """
-    FACTORY_FOR = DescriptorSystem
+    FACTORY_FOR = DescriptorService
 
     @classmethod
     def _build(cls, target_class, *args, **kwargs):  # pylint: disable=unused-argument
@@ -126,7 +126,7 @@ class DescriptorSystemFactory(Factory):
         return get_test_descriptor_system(*args, **kwargs)
 
 
-class ContainerModuleRuntimeFactory(ModuleSystemFactory):
+class ContainerModuleRuntimeFactory(ModuleServiceFactory):
     """
     Factory to generate a ModuleRuntime that generates children when asked
     for them, for testing container XModules.
@@ -151,7 +151,7 @@ class ContainerModuleRuntimeFactory(ModuleSystemFactory):
         self.position = position
 
 
-class ContainerDescriptorRuntimeFactory(DescriptorSystemFactory):
+class ContainerDescriptorRuntimeFactory(DescriptorServiceFactory):
     """
     Factory to generate a DescriptorRuntime that generates children when asked
     for them, for testing container XModuleDescriptors.
@@ -185,7 +185,7 @@ class LeafDescriptorFactory(Factory):
 
     FACTORY_FOR = XModuleDescriptor
 
-    runtime = SubFactory(DescriptorSystemFactory)
+    runtime = SubFactory(DescriptorServiceFactory)
     url_name = LazyAttributeSequence('{.block_type}_{}'.format)
 
     @lazy_attribute
@@ -233,7 +233,7 @@ class LeafModuleFactory(LeafDescriptorFactory):
         as an XModule.
         """
         if xmodule_runtime is None:
-            xmodule_runtime = ModuleSystemFactory()
+            xmodule_runtime = ModuleServiceFactory()
 
         self.xmodule_runtime = xmodule_runtime
 
@@ -382,7 +382,7 @@ class TestXmlExport(XBlockWrapperTestMixin, TestCase):
         xmodule_api_fs = MemoryFS()
         xblock_api_fs = MemoryFS()
 
-        descriptor.runtime.export_fs = xblock_api_fs
+        descriptor.service.export_fs = xblock_api_fs
         xblock_node = etree.Element('unknown')
         descriptor.add_xml_to_node(xblock_node)
 

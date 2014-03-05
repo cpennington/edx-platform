@@ -15,7 +15,7 @@ from xmodule.error_module import ErrorDescriptor
 from xmodule.exceptions import NotFoundError, ProcessingError
 from xmodule.modulestore.django import modulestore, loc_mapper
 from xmodule.modulestore.locator import Locator
-from xmodule.x_module import ModuleSystem
+from xmodule.x_module import ModuleService
 from xblock.runtime import KvsFieldData
 from xblock.django.request import webob_to_django_response, django_to_webob_request
 from xblock.exceptions import NoSuchHandlerError
@@ -79,9 +79,9 @@ def preview_handler(request, usage_id, handler, suffix=''):
     return webob_to_django_response(resp)
 
 
-class PreviewModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
+class PreviewModuleService(ModuleService):  # pylint: disable=abstract-method
     """
-    An XModule ModuleSystem for use in Studio previews
+    An XModule ModuleService for use in Studio previews
     """
     def handler_url(self, block, handler_name, suffix='', query='', thirdparty=False):
         return reverse('preview_handler', kwargs={
@@ -96,7 +96,7 @@ class PreviewModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
 
 def _preview_module_system(request, descriptor):
     """
-    Returns a ModuleSystem for the specified descriptor that is specialized for
+    Returns a ModuleService for the specified descriptor that is specialized for
     rendering module previews.
 
     request: The active django request
@@ -109,7 +109,7 @@ def _preview_module_system(request, descriptor):
     else:
         course_id = get_course_for_item(descriptor.location).location.course_id
 
-    return PreviewModuleSystem(
+    return PreviewModuleService(
         static_url=settings.STATIC_URL,
         # TODO (cpennington): Do we want to track how instructors are using the preview problems?
         track_function=lambda event_type, event: None,
@@ -137,7 +137,6 @@ def _preview_module_system(request, descriptor):
         # get_user_role accepts a location or a CourseLocator.
         # If descriptor.location is a CourseLocator, course_id is unused.
         get_user_role=lambda: get_user_role(request.user, descriptor.location, course_id),
-        descriptor_runtime=descriptor.runtime,
     )
 
 

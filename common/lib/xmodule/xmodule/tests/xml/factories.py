@@ -20,7 +20,7 @@ class XmlImportData(object):
     def __init__(self, xml_node, xml=None, org=None, course=None,
                  default_class=None, policy=None,
                  filesystem=None, parent=None,
-                 xblock_mixins=(), xblock_select=None):
+                 xblock_select=None):
 
         self._xml_node = xml_node
         self._xml_string = xml
@@ -28,7 +28,6 @@ class XmlImportData(object):
         self.course = course
         self.default_class = default_class
         self.filesystem = filesystem
-        self.xblock_mixins = xblock_mixins
         self.xblock_select = xblock_select
         self.parent = parent
 
@@ -49,7 +48,7 @@ class XmlImportData(object):
         return u"XmlImportData{!r}".format((
             self._xml_node, self._xml_string, self.org,
             self.course, self.default_class, self.policy,
-            self.filesystem, self.parent, self.xblock_mixins,
+            self.filesystem, self.parent,
             self.xblock_select,
         ))
 
@@ -67,7 +66,6 @@ class XmlImportFactory(Factory):
     FACTORY_FOR = XmlImportData
 
     filesystem = MemoryFS()
-    xblock_mixins = (InheritanceMixin,)
     xblock_select = only_xmodules
     url_name = Sequence(str)
     attribs = {}

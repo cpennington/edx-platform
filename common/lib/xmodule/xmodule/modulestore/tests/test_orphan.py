@@ -27,7 +27,6 @@ class TestOrphan(unittest.TestCase):
         'default_class': 'xmodule.raw_module.RawDescriptor',
         'fs_root': '',
         'render_template': mock.Mock(return_value=""),
-        'xblock_mixins': (InheritanceMixin,)
     }
 
     split_package_id = 'test_org.test_course.runid'

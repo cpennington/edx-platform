@@ -16,10 +16,11 @@ from mock import Mock
 from path import path
 
 from xblock.field_data import DictFieldData
+from xblock.test.tools import unabc
 
-from xmodule.x_module import ModuleSystem, XModuleDescriptor, XModuleMixin
+from xmodule.x_module import ModuleService, XModuleDescriptor, XModuleMixin, XModuleRuntime
 from xmodule.modulestore.inheritance import InheritanceMixin
-from xmodule.mako_module import MakoDescriptorSystem
+from xmodule.mako_module import MakoDescriptorService
 from xmodule.error_module import ErrorDescriptor
 from xmodule.modulestore.xml import LocationReader
 
@@ -40,9 +41,9 @@ open_ended_grading_interface = {
 }
 
 
-class TestModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
+class TestModuleService(ModuleService):  # pylint: disable=abstract-method
     """
-    ModuleSystem for testing
+    ModuleService for testing
     """
     def handler_url(self, block, handler, suffix='', query='', thirdparty=False):
         return str(block.scope_ids.usage_id) + '/' + handler + '/' + suffix + '?' + query
@@ -53,7 +54,7 @@ class TestModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
 
 def get_test_system(course_id=''):
     """
-    Construct a test ModuleSystem instance.
+    Construct a test ModuleService instance.
 
     By default, the render_template() method simply returns the repr of the
     context it is passed.  You can override this behavior by monkey patching::
@@ -64,7 +65,7 @@ def get_test_system(course_id=''):
     where `my_render_func` is a function of the form my_render_func(template, context).
 
     """
-    return TestModuleSystem(
+    return TestModuleService(
         static_url='/static',
         track_function=Mock(),
         get_module=Mock(),
@@ -81,23 +82,29 @@ def get_test_system(course_id=''):
         course_id=course_id,
         error_descriptor_class=ErrorDescriptor,
         get_user_role=Mock(is_staff=False),
-        descriptor_runtime=get_test_descriptor_system(),
     )
 
 
 def get_test_descriptor_system():
     """
-    Construct a test DescriptorSystem instance.
+    Construct a test DescriptorService instance.
     """
-    return MakoDescriptorSystem(
+    return MakoDescriptorService(
         load_item=Mock(),
         resources_fs=Mock(),
         error_tracker=Mock(),
         render_template=mock_render_template,
-        mixins=(InheritanceMixin, XModuleMixin),
-        field_data=DictFieldData({}),
-        id_reader=LocationReader(),
     )
+
+
+@unabc
+class TestRuntime(XModuleRuntime):
+    def __init__(self):
+        super(TestRuntime, self).__init__(
+            mixins=(InheritanceMixin, XModuleMixin),
+            field_data=DictFieldData({}),
+            id_reader=LocationReader(),
+        )
 
 
 def mock_render_template(*args, **kwargs):

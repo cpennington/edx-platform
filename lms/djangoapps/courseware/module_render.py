@@ -22,7 +22,7 @@ from courseware.access import has_access, get_user_role
 from courseware.masquerade import setup_masquerade
 from courseware.model_data import FieldDataCache, DjangoKeyValueStore
 from lms.lib.xblock.field_data import LmsFieldData
-from lms.lib.xblock.runtime import LmsModuleSystem, unquote_slashes
+from lms.lib.xblock.runtime import unquote_slashes
 from edxmako.shortcuts import render_to_string
 from psychometrics.psychoanalyze import make_psychometrics_data_update_handler
 from student.models import anonymous_id_for_user, user_by_anonymous_id
@@ -39,7 +39,7 @@ from xmodule.modulestore.exceptions import ItemNotFoundError
 from xmodule.util.duedate import get_extended_due_date
 from xmodule_modifiers import replace_course_urls, replace_jump_to_id_urls, replace_static_urls, add_staff_debug_info, wrap_xblock
 from xmodule.lti_module import LTIModule
-from xmodule.x_module import XModuleDescriptor
+from xmodule.x_module import XModuleDescriptor, ModuleService
 
 from util.date_utils import strftime_localized
 from util.json_request import JsonResponse
@@ -64,7 +64,7 @@ xqueue_interface = XQueueInterface(
 def make_track_function(request):
     '''
     Make a tracking function that logs what happened.
-    For use in ModuleSystem.
+    For use in ModuleService.
     '''
     import track.views
 
@@ -388,7 +388,7 @@ def get_module_for_descriptor_internal(user, descriptor, field_data_cache, cours
     else:
         anonymous_student_id = anonymous_id_for_user(user, '')
 
-    system = LmsModuleSystem(
+    system = ModuleService(
         track_function=track_function,
         render_template=render_to_string,
         static_url=settings.STATIC_URL,
@@ -433,10 +433,9 @@ def get_module_for_descriptor_internal(user, descriptor, field_data_cache, cours
             'i18n': ModuleI18nService(),
         },
         get_user_role=lambda: get_user_role(user, course_id),
-        descriptor_runtime=descriptor.runtime,
     )
 
-    # pass position specified in URL to module through ModuleSystem
+    # pass position specified in URL to module through ModuleService
     system.set('position', position)
     if settings.FEATURES.get('ENABLE_PSYCHOMETRICS'):
         system.set(
@@ -516,16 +515,16 @@ def xqueue_callback(request, course_id, userid, mod_id, dispatch):
 
 
 @csrf_exempt
-def handle_xblock_callback_noauth(request, course_id, usage_id, handler, suffix=None):
+def handle_xblock_callback_noauth(request, usage_id, handler, suffix=None):
     """
     Entry point for unauthenticated XBlock handlers.
     """
     request.user.known = False
 
-    return _invoke_xblock_handler(request, course_id, usage_id, handler, suffix, request.user)
+    return _invoke_xblock_handler(request, usage_id, handler, suffix, request.user)
 
 
-def handle_xblock_callback(request, course_id, usage_id, handler, suffix=None):
+def handle_xblock_callback(request, usage_id, handler, suffix=None):
     """
     Generic view for extensions. This is where AJAX calls go.
 
@@ -543,7 +542,7 @@ def handle_xblock_callback(request, course_id, usage_id, handler, suffix=None):
     if not request.user.is_authenticated():
         raise PermissionDenied
 
-    return _invoke_xblock_handler(request, course_id, usage_id, handler, suffix, request.user)
+    return _invoke_xblock_handler(request, usage_id, handler, suffix, request.user)
 
 
 def xblock_resource(request, block_type, uri):
@@ -563,7 +562,7 @@ def xblock_resource(request, block_type, uri):
     return HttpResponse(content, mimetype=mimetype)
 
 
-def _invoke_xblock_handler(request, course_id, usage_id, handler, suffix, user):
+def _invoke_xblock_handler(request, usage_id, handler, suffix, user):
     """
     Invoke an XBlock handler, either authenticated or not.
 
@@ -580,6 +579,7 @@ def _invoke_xblock_handler(request, course_id, usage_id, handler, suffix, user):
     if error_msg:
         return HttpResponse(json.dumps({'success': error_msg}))
 
+    raise Exception('Use course id service')
     try:
         descriptor = modulestore().get_instance(course_id, location)
     except ItemNotFoundError:

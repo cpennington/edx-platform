@@ -331,7 +331,7 @@ def _get_track_function_for_task(student, xmodule_instance_args=None, source_pag
     """
     Make a tracking function that logs what happened.
 
-    For insertion into ModuleSystem, and used by CapaModule, which will
+    For insertion into ModuleService, and used by CapaModule, which will
     provide the event_type (as string) and event (as dict) as arguments.
     The request_info and task_info (and page) are provided here.
     """
@@ -364,7 +364,7 @@ def _get_module_instance_for_task(course_id, student, module_descriptor, xmodule
         '''
         Make a tracking function that logs what happened.
 
-        For insertion into ModuleSystem, and used by CapaModule, which will
+        For insertion into ModuleService, and used by CapaModule, which will
         provide the event_type (as string) and event (as dict) as arguments.
         The request_info and task_info (and page) are provided here.
         '''

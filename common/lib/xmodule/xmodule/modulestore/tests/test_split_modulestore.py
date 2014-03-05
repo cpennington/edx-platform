@@ -37,7 +37,6 @@ class SplitModuleTest(unittest.TestCase):
     modulestore_options = {
         'default_class': 'xmodule.raw_module.RawDescriptor',
         'fs_root': '',
-        'xblock_mixins': (InheritanceMixin, XModuleMixin)
     }
 
     MODULESTORE = {

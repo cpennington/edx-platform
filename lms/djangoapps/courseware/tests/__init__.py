@@ -55,7 +55,7 @@ class BaseTestXmodule(ModuleStoreTestCase):
 
     def new_module_runtime(self):
         """
-        Generate a new ModuleSystem that is minimally set up for testing
+        Generate a new ModuleService that is minimally set up for testing
         """
         runtime = get_test_system(course_id=self.course.id)
 

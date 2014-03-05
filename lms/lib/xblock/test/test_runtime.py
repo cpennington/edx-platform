@@ -6,7 +6,7 @@ from ddt import ddt, data
 from mock import Mock
 from unittest import TestCase
 from urlparse import urlparse
-from lms.lib.xblock.runtime import quote_slashes, unquote_slashes, LmsModuleSystem
+from lms.lib.xblock.runtime import quote_slashes, unquote_slashes, LmsRuntime
 
 TEST_STRINGS = [
     '',
@@ -40,15 +40,9 @@ class TestHandlerUrl(TestCase):
 
     def setUp(self):
         self.block = Mock()
-        self.course_id = "org/course/run"
-        self.runtime = LmsModuleSystem(
-            static_url='/static',
-            track_function=Mock(),
-            get_module=Mock(),
-            render_template=Mock(),
-            replace_urls=str,
-            course_id=self.course_id,
-            descriptor_runtime=Mock(),
+        self.runtime = LmsRuntime(
+            id_reader=Mock(),
+            field_data=Mock(),
         )
 
     def test_trailing_characters(self):

@@ -506,8 +506,9 @@ class CourseDescriptor(CourseFields, SequenceDescriptor):
         return policy_str
 
     @classmethod
-    def from_xml(cls, xml_data, system, id_generator):
-        instance = super(CourseDescriptor, cls).from_xml(xml_data, system, id_generator)
+    def from_xml(cls, xml_data, runtime, id_generator):
+        instance = super(CourseDescriptor, cls).from_xml(xml_data, runtime, id_generator)
+        descr_service = runtime.service(None, 'xdescriptor')
 
         # bleh, have to parse the XML here to just pull out the url_name attribute
         # I don't think it's stored anywhere in the instance.
@@ -525,9 +526,9 @@ class CourseDescriptor(CourseFields, SequenceDescriptor):
             paths = [policy_dir + '/grading_policy.json'] + paths
 
         try:
-            policy = json.loads(cls.read_grading_policy(paths, system))
+            policy = json.loads(cls.read_grading_policy(paths, descr_service))
         except ValueError:
-            system.error_tracker("Unable to decode grading policy as json")
+            descr_service.error_tracker("Unable to decode grading policy as json")
             policy = {}
 
         # now set the current instance. set_grading_policy() will apply some inheritance rules

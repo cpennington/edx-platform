@@ -2,7 +2,7 @@
 Tests for ErrorModule and NonStaffErrorModule
 """
 import unittest
-from xmodule.tests import get_test_system
+from xmodule.tests import get_test_system, TestRuntime
 from xmodule.error_module import ErrorDescriptor, ErrorModule, NonStaffErrorDescriptor
 from xmodule.modulestore import Location
 from xmodule.modulestore.xml import CourseLocationGenerator
@@ -112,11 +112,6 @@ class BrokenDescriptor(XModuleDescriptor):
 
 class TestException(Exception):
     """An exception type to use to verify raises in tests"""
-    pass
-
-
-@unabc("Tests should not call {}")
-class TestRuntime(Runtime):
     pass
 
 
