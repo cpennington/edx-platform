@@ -41,8 +41,8 @@ class TestHandlerUrl(TestCase):
     def setUp(self):
         self.block = Mock()
         self.runtime = LmsRuntime(
-            id_reader=Mock(),
-            field_data=Mock(),
+            id_reader=Mock(name='id_reader'),
+            field_data=Mock(name='field_data'),
         )
 
     def test_trailing_characters(self):

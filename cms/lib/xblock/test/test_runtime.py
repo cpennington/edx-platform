@@ -5,7 +5,7 @@ from urlparse import urlparse
 
 from mock import Mock
 from unittest import TestCase
-from cms.lib.xblock.runtime import handler_url
+from cms.lib.xblock.runtime import StudioRuntime
 
 
 class TestHandlerUrl(TestCase):
@@ -14,23 +14,27 @@ class TestHandlerUrl(TestCase):
     def setUp(self):
         self.block = Mock()
         self.course_id = "org/course/run"
+        self.runtime = StudioRuntime(
+            id_reader=Mock(name='id_reader'),
+            field_data=Mock(name='field_data'),
+        )
 
     def test_trailing_charecters(self):
-        self.assertFalse(handler_url(self.block, 'handler').endswith('?'))
-        self.assertFalse(handler_url(self.block, 'handler').endswith('/'))
+        self.assertFalse(self.runtime.handler_url(self.block, 'handler').endswith('?'))
+        self.assertFalse(self.runtime.handler_url(self.block, 'handler').endswith('/'))
 
-        self.assertFalse(handler_url(self.block, 'handler', 'suffix').endswith('?'))
-        self.assertFalse(handler_url(self.block, 'handler', 'suffix').endswith('/'))
+        self.assertFalse(self.runtime.handler_url(self.block, 'handler', 'suffix').endswith('?'))
+        self.assertFalse(self.runtime.handler_url(self.block, 'handler', 'suffix').endswith('/'))
 
-        self.assertFalse(handler_url(self.block, 'handler', 'suffix', 'query').endswith('?'))
-        self.assertFalse(handler_url(self.block, 'handler', 'suffix', 'query').endswith('/'))
+        self.assertFalse(self.runtime.handler_url(self.block, 'handler', 'suffix', 'query').endswith('?'))
+        self.assertFalse(self.runtime.handler_url(self.block, 'handler', 'suffix', 'query').endswith('/'))
 
-        self.assertFalse(handler_url(self.block, 'handler', query='query').endswith('?'))
-        self.assertFalse(handler_url(self.block, 'handler', query='query').endswith('/'))
+        self.assertFalse(self.runtime.handler_url(self.block, 'handler', query='query').endswith('?'))
+        self.assertFalse(self.runtime.handler_url(self.block, 'handler', query='query').endswith('/'))
 
     def _parsed_query(self, query_string):
         """Return the parsed query string from a handler_url generated with the supplied query_string"""
-        return urlparse(handler_url(self.block, 'handler', query=query_string)).query
+        return urlparse(self.runtime.handler_url(self.block, 'handler', query=query_string)).query
 
     def test_query_string(self):
         self.assertIn('foo=bar', self._parsed_query('foo=bar'))
@@ -39,7 +43,7 @@ class TestHandlerUrl(TestCase):
 
     def _parsed_path(self, handler_name='handler', suffix=''):
         """Return the parsed path from a handler_url with the supplied handler_name and suffix"""
-        return urlparse(handler_url(self.block, handler_name, suffix=suffix)).path
+        return urlparse(self.runtime.handler_url(self.block, handler_name, suffix=suffix)).path
 
     def test_suffix(self):
         self.assertTrue(self._parsed_path(suffix="foo").endswith('foo'))

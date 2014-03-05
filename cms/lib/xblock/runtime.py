@@ -13,10 +13,9 @@ from lms.lib.xblock.runtime import quote_slashes
 
 
 class StudioRuntime(Runtime):
-    def __init__(self, request, **kwargs):
+    def __init__(self, **kwargs):
         kwargs['mixins'] = (LmsBlockMixin, CmsBlockMixin, InheritanceMixin, XModuleMixin)
         super(StudioRuntime, self).__init__(**kwargs)
-        self.request = request
 
     def handler_url(self, block, handler_name, suffix='', query='', thirdparty=False):
         """
@@ -45,3 +44,10 @@ class StudioRuntime(Runtime):
             'block_type': block.scope_ids.block_type,
             'uri': uri,
         })
+
+    def resource_url(self, resource):
+        raise NotImplementedError('Deprecated')
+
+    def publish(self, block, event, custom_user=None):
+        """A function that allows XModules to publish events. This only supports grade changes right now."""
+        raise NotImplementedError("Studio doesn't know how to publish events")

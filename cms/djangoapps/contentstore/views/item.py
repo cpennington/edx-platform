@@ -38,20 +38,12 @@ from .helpers import _xmodule_recurse
 from contentstore.views.preview import get_preview_fragment
 from edxmako.shortcuts import render_to_string
 from models.settings.course_grading import CourseGradingModel
-from cms.lib.xblock.runtime import handler_url, local_resource_url
 
 __all__ = ['orphan_handler', 'xblock_handler', 'xblock_view_handler']
 
 log = logging.getLogger(__name__)
 
 CREATE_IF_NOT_FOUND = ['course_info']
-
-
-# In order to allow descriptors to use a handler url, we need to
-# monkey-patch the x_module library.
-# TODO: Remove this code when Runtimes are no longer created by modulestores
-xmodule.x_module.descriptor_global_handler_url = handler_url
-xmodule.x_module.descriptor_global_local_resource_url = local_resource_url
 
 
 def hash_resource(resource):
