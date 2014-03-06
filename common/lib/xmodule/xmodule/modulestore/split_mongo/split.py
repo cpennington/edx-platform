@@ -132,7 +132,7 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
 
     @property
     def runtime(self):
-        return self.build_runtime(self.__class__.__name__, id_reader=SplitMongoIdReader(), field_data=None)
+        return self.build_runtime(self.__class__.__name__, id_reader=None, field_data=None)
 
     def cache_items(self, system, base_block_ids, depth=0, lazy=True):
         '''

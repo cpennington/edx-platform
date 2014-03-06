@@ -4,14 +4,16 @@ import mimetypes
 from path import path
 import json
 
-from .xml import XMLModuleStore, ImportSystem, ParentTracker
-from xmodule.modulestore import Location
 from xblock.fields import Scope, Reference, ReferenceList, String
 from xblock.runtime import Runtime
+from xblock.test.tools import unabc
 from xmodule.contentstore.content import StaticContent
-from .inheritance import own_metadata
 from xmodule.errortracker import make_error_tracker
-from .store_utilities import rewrite_nonportable_content_links
+from xmodule.modulestore import Location
+from xmodule.modulestore.inheritance import own_metadata
+from xmodule.modulestore.store_utilities import rewrite_nonportable_content_links
+from xmodule.modulestore.xml import XMLModuleStore, ImportSystem, ParentTracker
+from xmodule.x_module import XModuleRuntime
 
 log = logging.getLogger(__name__)
 
@@ -691,6 +693,13 @@ def validate_course_policy(module_store, course_id):
     return warn_cnt
 
 
+@unabc('{} not used for xml linting')
+class LinterRuntime(XModuleRuntime):
+    """
+    XBlock runtime useable when linting an XML course
+    """
+
+
 def perform_xlint(
         data_dir, course_dirs,
         default_class='xmodule.raw_module.RawDescriptor',
@@ -700,6 +709,7 @@ def perform_xlint(
 
     module_store = XMLModuleStore(
         data_dir,
+        build_runtime=LinterRuntime,
         default_class=default_class,
         course_dirs=course_dirs,
         load_error_modules=load_error_modules
