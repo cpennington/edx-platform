@@ -65,7 +65,7 @@ from xmodule.modulestore import inheritance, ModuleStoreWriteBase, Location, SPL
 
 from ..exceptions import ItemNotFoundError
 from .definition_lazy_loader import DefinitionLazyLoader
-from .caching_descriptor_system import CachingDescriptorService
+from .caching_descriptor_system import CachingDescriptorService, SplitMongoIdReader
 from xblock.fields import Scope
 from xblock.runtime import Mixologist
 from bson.objectid import ObjectId
@@ -129,6 +129,10 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         self.fs_root = path(fs_root)
         self.error_tracker = error_tracker
         self.render_template = render_template
+
+    @property
+    def runtime(self):
+        return self.build_runtime(self.__class__.__name__, id_reader=SplitMongoIdReader(), field_data=None)
 
     def cache_items(self, system, base_block_ids, depth=0, lazy=True):
         '''
@@ -1489,7 +1493,7 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         """
         if fields is None:
             return {}
-        cls = self.mixologist.mix(self.runtime.load_block_type(category))
+        cls = self.runtime.mixologist.mix(self.runtime.load_block_type(category))
         result = collections.defaultdict(dict)
         for field_name, value in fields.iteritems():
             field = getattr(cls, field_name)
