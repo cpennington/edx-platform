@@ -32,7 +32,6 @@ from path import path
 from lms.lib.xblock.mixin import LmsBlockMixin
 from cms.lib.xblock.mixin import CmsBlockMixin
 from xmodule.modulestore.inheritance import InheritanceMixin
-from xmodule.x_module import XModuleMixin, only_xmodules
 from dealer.git import git
 
 ############################ FEATURE CONFIGURATION #############################
@@ -195,6 +194,10 @@ MIDDLEWARE_CLASSES = (
 )
 
 ############# XBlock Configuration ##########
+
+from cms.lib.xblock.runtime import StudioRuntime
+from xmodule.x_module import only_xmodules
+
 # Only allow XModules in Studio
 XBLOCK_SELECT_FUNCTION = only_xmodules
 
@@ -204,6 +207,8 @@ XBLOCK_SELECT_FUNCTION = only_xmodules
 # xblocks can be added via advanced settings
 # from xmodule.x_module import prefer_xmodules
 # XBLOCK_SELECT_FUNCTION = prefer_xmodules
+
+XBLOCK_RUNTIME = StudioRuntime
 
 ############################ SIGNAL HANDLERS ################################
 # This is imported to register the exception signal handling that logs exceptions

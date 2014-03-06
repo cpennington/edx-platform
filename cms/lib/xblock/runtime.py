@@ -3,16 +3,15 @@ XBlock runtime implementations for edX Studio
 """
 
 from django.core.urlresolvers import reverse
-from xblock.runtime import Runtime
 from xmodule.modulestore.inheritance import InheritanceMixin
-from xmodule.x_module import XModuleMixin
+from xmodule.x_module import XModuleMixin, XModuleRuntime
 
 from cms.lib.xblock.mixin import CmsBlockMixin
 from lms.lib.xblock.mixin import LmsBlockMixin
 from lms.lib.xblock.runtime import quote_slashes
 
 
-class StudioRuntime(Runtime):
+class StudioRuntime(XModuleRuntime):
     def __init__(self, **kwargs):
         kwargs['mixins'] = (LmsBlockMixin, CmsBlockMixin, InheritanceMixin, XModuleMixin)
         super(StudioRuntime, self).__init__(**kwargs)
