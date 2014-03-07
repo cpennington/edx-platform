@@ -4,6 +4,7 @@ XBlock runtime implementations for edX Studio
 
 from django.core.urlresolvers import reverse
 from xmodule.modulestore.inheritance import InheritanceMixin
+from xmodule.modulestore.django import modulestore
 from xmodule.x_module import XModuleMixin, XModuleRuntime
 
 from cms.lib.xblock.mixin import CmsBlockMixin
@@ -15,6 +16,9 @@ class StudioRuntime(XModuleRuntime):
     def __init__(self, **kwargs):
         kwargs['mixins'] = (LmsBlockMixin, CmsBlockMixin, InheritanceMixin, XModuleMixin)
         super(StudioRuntime, self).__init__(**kwargs)
+
+    def get_block(self, usage_id):
+        return modulestore().get_item(usage_id)
 
     def handler_url(self, block, handler_name, suffix='', query='', thirdparty=False):
         """

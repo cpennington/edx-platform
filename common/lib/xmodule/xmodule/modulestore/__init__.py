@@ -298,7 +298,7 @@ class ModuleStoreRead(object):
         pass
 
     @abstractmethod
-    def get_item(self, location, depth=0):
+    def get_item(self, usage_id, depth=0):
         """
         Returns an XModuleDescriptor instance for the item at location.
 
@@ -308,20 +308,12 @@ class ModuleStoreRead(object):
         If no object is found at that location, raises
             xmodule.modulestore.exceptions.ItemNotFoundError
 
-        location: Something that can be passed to Location
+        usage_id: Something that can be passed to Location
 
         depth (int): An argument that some module stores may use to prefetch
             descendents of the queried modules for more efficient results later
             in the request. The depth is counted in the number of calls to
             get_children() to cache. None indicates to cache all descendents
-        """
-        pass
-
-    @abstractmethod
-    def get_instance(self, course_id, location, depth=0):
-        """
-        Get an instance of this location, with policy for course_id applied.
-        TODO (vshnayder): this may want to live outside the modulestore eventually
         """
         pass
 

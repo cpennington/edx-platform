@@ -48,8 +48,8 @@ def clean_out_mako_templating(xml_string):
 
 class ImportSystem(XMLParsingService, MakoDescriptorService):
     def __init__(self, xmlstore, course_id, course_dir,
-                 error_tracker, parent_tracker,
-                 load_error_modules=True, id_reader=None, **kwargs):
+                 error_tracker, parent_tracker, runtime,
+                 load_error_modules=True, **kwargs):
         """
         A class that handles loading from xml.  Does some munging to ensure that
         all elements have unique slugs.
@@ -59,8 +59,6 @@ class ImportSystem(XMLParsingService, MakoDescriptorService):
         self.unnamed = defaultdict(int)  # category -> num of new url_names for that category
         self.used_names = defaultdict(set)  # category -> set of used url_names
         self.org, self.course, self.url_name = course_id.split('/')
-        if id_reader is None:
-            id_reader = LocationReader()
         id_generator = CourseLocationGenerator(self.org, self.course)
 
         # cdodge: adding the course_id as passed in for later reference rather than having to recomine the org/course/url_name
@@ -233,6 +231,9 @@ class ImportSystem(XMLParsingService, MakoDescriptorService):
             process_xml=process_xml,
             **kwargs
         )
+
+        # This has to be done after the call to super, because super sets self.runtime to None
+        self.runtime = runtime
 
     # id_generator is ignored, because each ImportSystem is already local to
     # a course, and has it's own id_generator already in place
@@ -538,6 +539,7 @@ class XMLModuleStore(ModuleStoreReadBase):
                 parent_tracker=self.parent_trackers[course_id],
                 load_error_modules=self.load_error_modules,
                 get_policy=get_policy,
+                runtime=self.runtime,
             )
 
             self.runtime.bind_service(None, 'xdescriptor', service)
@@ -614,7 +616,7 @@ class XMLModuleStore(ModuleStoreReadBase):
                             Exception: %s", filepath, unicode(e))
                     service.error_tracker("ERROR: " + unicode(e))
 
-    def get_instance(self, course_id, location, depth=0):
+    def  get_item(self, usage_id, depth=0):
         """
         Returns an XBlock instance for the item at
         location, with the policy for course_id.  (In case two xml
@@ -629,11 +631,10 @@ class XMLModuleStore(ModuleStoreReadBase):
 
         location: Something that can be passed to Location
         """
-        location = Location(location)
         try:
-            return self.modules[course_id][location]
+            return self.modules[usage_id]
         except KeyError:
-            raise ItemNotFoundError(location)
+            raise ItemNotFoundError(usage_id)
 
     def has_item(self, course_id, location):
         """

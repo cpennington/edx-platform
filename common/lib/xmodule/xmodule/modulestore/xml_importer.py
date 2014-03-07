@@ -370,6 +370,7 @@ def import_course_draft(
         error_tracker=errorlog.tracker,
         parent_tracker=ParentTracker(),
         load_error_modules=False,
+        runtime=xml_module_store.runtime,
     )
 
     # now walk the /vertical directory where each file in there

@@ -738,7 +738,7 @@ class ContentStoreToyCourseTest(ModuleStoreTestCase):
 
         # get a vertical (and components in it) to put into 'draft'
         # this is to assert that draft content is also cloned over
-        vertical = module_store.get_instance(source_course_id, Location([
+        vertical = module_store.get_item(Location([
             source_location.tag, source_location.org, source_location.course, 'vertical', 'vertical_test', None]), depth=1)
 
         draft_store.convert_to_draft(vertical.location)
@@ -770,7 +770,7 @@ class ContentStoreToyCourseTest(ModuleStoreTestCase):
         self.assertGreater(len(clone_items), 0)
 
         for descriptor in items:
-            source_item = module_store.get_instance(source_course_id, descriptor.location)
+            source_item = module_store.get_item(descriptor.location)
             if descriptor.location.category == 'course':
                 new_loc = descriptor.location.replace(org=dest_location.org, course=dest_location.course, name='2013_Spring')
             else:
@@ -824,14 +824,14 @@ class ContentStoreToyCourseTest(ModuleStoreTestCase):
         # as a final check, make sure that any non-portable links are rewritten during cloning
         html_module_location = Location([
             source_location.tag, source_location.org, source_location.course, 'html', 'nonportable'])
-        html_module = module_store.get_instance(source_location.course_id, html_module_location)
+        html_module = module_store.get_item(html_module_location)
 
         self.assertIsInstance(html_module.data, basestring)
         new_data = html_module.data = html_module.data.replace('/static/', '/c4x/{0}/{1}/asset/'.format(
             source_location.org, source_location.course))
         module_store.update_item(html_module, self.user.id)
 
-        html_module = module_store.get_instance(source_location.course_id, html_module_location)
+        html_module = module_store.get_item(html_module_location)
         self.assertEqual(new_data, html_module.data)
 
         # create the destination course
@@ -843,7 +843,7 @@ class ContentStoreToyCourseTest(ModuleStoreTestCase):
         # make sure that any non-portable links are rewritten during cloning
         html_module_location = Location([
             dest_location.tag, dest_location.org, dest_location.course, 'html', 'nonportable'])
-        html_module = module_store.get_instance(dest_location.course_id, html_module_location)
+        html_module = module_store.get_item(html_module_location)
 
         self.assertIn('/static/foo.jpg', html_module.data)
 

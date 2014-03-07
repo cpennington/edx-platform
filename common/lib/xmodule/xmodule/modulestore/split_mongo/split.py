@@ -347,7 +347,7 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
 
         return self._get_block_from_structure(course_structure, block_location.block_id) is not None
 
-    def get_item(self, location, depth=0):
+    def get_item(self, usage_id, depth=0):
         """
         depth (int): An argument that some module stores may use to prefetch
             descendants of the queried modules for more efficient results later
@@ -357,21 +357,21 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         raises InsufficientSpecificationError or ItemNotFoundError
         """
         # intended for temporary support of some pointers being old-style
-        if isinstance(location, Location):
+        if isinstance(usage_id, Location):
             if self.loc_mapper is None:
                 raise InsufficientSpecificationError('No location mapper configured')
             else:
-                location = self.loc_mapper.translate_location(
-                    None, location, location.revision is None,
+                usage_id = self.loc_mapper.translate_location(
+                    None, usage_id, usage_id.revision is None,
                     add_entry_if_missing=False
                 )
-        assert isinstance(location, BlockUsageLocator)
-        if not location.is_initialized():
-            raise InsufficientSpecificationError("Not yet initialized: %s" % location)
-        course = self._lookup_course(location)
-        items = self._load_items(course, [location.block_id], depth, lazy=True)
+        assert isinstance(usage_id, BlockUsageLocator)
+        if not usage_id.is_initialized():
+            raise InsufficientSpecificationError("Not yet initialized: %s" % usage_id)
+        course = self._lookup_course(usage_id)
+        items = self._load_items(course, [usage_id.block_id], depth, lazy=True)
         if len(items) == 0:
-            raise ItemNotFoundError(location)
+            raise ItemNotFoundError(usage_id)
         return items[0]
 
     def get_items(self, locator, course_id=None, depth=0, qualifiers=None):
@@ -409,19 +409,6 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
             return self._load_items(course, items, 0, lazy=True)
         else:
             return []
-
-    def get_instance(self, course_id, location, depth=0):
-        """
-        Get an instance of this location.
-
-        For now, just delegate to get_item and ignore course policy.
-
-        depth (int): An argument that some module stores may use to prefetch
-            descendants of the queried modules for more efficient results later
-            in the request. The depth is counted in the number of
-            calls to get_children() to cache. None indicates to cache all descendants.
-        """
-        return self.get_item(location, depth=depth)
 
     def get_parent_locations(self, locator, course_id=None):
         '''

@@ -117,7 +117,7 @@ class TestCreateItem(ItemTest):
 
         # get the course and ensure it now points to this one
         course = self.get_item_from_modulestore(self.unicode_locator)
-        self.assertIn(self.get_old_id(chap_locator).url(), course.children)
+        self.assertIn(self.get_old_id(chap_locator), course.children)
 
         # use default display name
         resp = self.create_xblock(parent_locator=chap_locator, category='vertical')
@@ -392,8 +392,8 @@ class TestEditItem(ItemTest):
         chapter2_locator = self.response_locator(resp_2)
 
         course = self.get_item_from_modulestore(self.unicode_locator)
-        self.assertIn(self.get_old_id(chapter1_locator).url(), course.children)
-        self.assertIn(self.get_old_id(chapter2_locator).url(), course.children)
+        self.assertIn(self.get_old_id(chapter1_locator), course.children)
+        self.assertIn(self.get_old_id(chapter2_locator), course.children)
 
         # Remove one child from the course.
         resp = self.client.ajax_post(
@@ -422,8 +422,8 @@ class TestEditItem(ItemTest):
         # Children must be on the sequential to reproduce the original bug,
         # as it is important that the parent (sequential) NOT be in the draft store.
         children = self.get_item_from_modulestore(self.seq_locator).children
-        self.assertEqual(self.get_old_id(unit1_locator).url(), children[1])
-        self.assertEqual(self.get_old_id(unit2_locator).url(), children[2])
+        self.assertEqual(self.get_old_id(unit1_locator), children[1])
+        self.assertEqual(self.get_old_id(unit2_locator), children[2])
 
         resp = self.client.ajax_post(
             self.seq_update_url,

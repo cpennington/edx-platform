@@ -199,18 +199,10 @@ class MixedModuleStore(ModuleStoreWriteBase):
         decoded_ref = self._incoming_reference_adaptor(store, course_id, reference)
         return store.has_item(course_id, decoded_ref)
 
-    def get_item(self, location, depth=0):
-        """
-        This method is explicitly not implemented as we need a course_id to disambiguate
-        We should be able to fix this when the data-model rearchitecting is done
-        """
-        raise NotImplementedError
-
-    def get_instance(self, course_id, location, depth=0):
+    def get_item(self, usage_id, depth=0):
+        course_id = usage_id.package_id
         store = self._get_modulestore_for_courseid(course_id)
-        decoded_ref = self._incoming_reference_adaptor(store, course_id, location)
-        xblock = store.get_instance(course_id, decoded_ref, depth)
-        return self._outgoing_xblock_adaptor(store, course_id, xblock)
+        return store.get_item(usage_id, depth)
 
     def get_items(self, location, course_id=None, depth=0, qualifiers=None):
         """
