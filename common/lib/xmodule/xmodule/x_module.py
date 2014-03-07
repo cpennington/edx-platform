@@ -668,7 +668,7 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
         Interpret the parsed XML in `node`, creating an XModuleDescriptor.
         """
         xml = etree.tostring(node)
-        block = cls.from_xml(xml, runtime.service(None, 'xdescriptor'), id_generator)
+        block = cls.from_xml(xml, runtime, id_generator)
         return block
 
     @classmethod
@@ -694,7 +694,7 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
         Export this :class:`XModuleDescriptor` as XML, by setting attributes on the provided
         `node`.
         """
-        xml_string = self.export_to_xml(self.service.export_fs)
+        xml_string = self.export_to_xml(self.system.export_fs)
         exported_node = etree.fromstring(xml_string)
         node.tag = exported_node.tag
         node.text = exported_node.text
@@ -772,7 +772,7 @@ class XModuleDescriptor(XModuleMixin, HTMLSnippet, ResourceTemplates, XBlock):
                 continue
 
             # gets the 'default_value' and 'explicitly_set' attrs
-            metadata_fields[field.name] = self.runtime.service(self, 'xdescriptor').get_field_provenance(self, field)
+            metadata_fields[field.name] = self.runtime.get_field_provenance(self, field)
             metadata_fields[field.name]['field_name'] = field.name
             metadata_fields[field.name]['display_name'] = field.display_name
             metadata_fields[field.name]['help'] = field.help
@@ -889,7 +889,7 @@ class ConfigurableFragmentWrapper(object):  # pylint: disable=abstract-method
         return frag
 
 
-class XModuleRuntime(Runtime):
+class XModuleRuntime(ConfigurableFragmentWrapper, Runtime):
     """
     XBlock Runtime with functionality needed by xmodules
     """
@@ -924,6 +924,33 @@ class XModuleRuntime(Runtime):
         child = etree.SubElement(node, "unknown")
         child.set('url_name', block.url_name)
         block.add_xml_to_node(child)
+
+    def get_field_provenance(self, xblock, field):
+        """
+        For the given xblock, return a dict for the field's current state:
+        {
+            'default_value': what json'd value will take effect if field is unset: either the field default or
+            inherited value,
+            'explicitly_set': boolean for whether the current value is set v default/inherited,
+        }
+        :param xblock:
+        :param field:
+        """
+        # in runtime b/c runtime contains app-specific xblock behavior. Studio's the only app
+        # which needs this level of introspection right now. runtime also is 'allowed' to know
+        # about the kvs, dbmodel, etc.
+
+        result = {}
+        result['explicitly_set'] = xblock._field_data.has(xblock, field.name)
+        try:
+            block_inherited = xblock.xblock_kvs.inherited_settings
+        except AttributeError:  # if inherited_settings doesn't exist on kvs
+            block_inherited = {}
+        if field.name in block_inherited:
+            result['default_value'] = block_inherited[field.name]
+        else:
+            result['default_value'] = field.to_json(field.default)
+        return result
 
 
 class DescriptorService(object):  # pylint: disable=abstract-method
@@ -989,33 +1016,6 @@ class DescriptorService(object):  # pylint: disable=abstract-method
             self.get_policy = lambda u: {}
 
         self.runtime = None
-
-    def get_field_provenance(self, xblock, field):
-        """
-        For the given xblock, return a dict for the field's current state:
-        {
-            'default_value': what json'd value will take effect if field is unset: either the field default or
-            inherited value,
-            'explicitly_set': boolean for whether the current value is set v default/inherited,
-        }
-        :param xblock:
-        :param field:
-        """
-        # in runtime b/c runtime contains app-specific xblock behavior. Studio's the only app
-        # which needs this level of introspection right now. runtime also is 'allowed' to know
-        # about the kvs, dbmodel, etc.
-
-        result = {}
-        result['explicitly_set'] = xblock._field_data.has(xblock, field.name)
-        try:
-            block_inherited = xblock.xblock_kvs.inherited_settings
-        except AttributeError:  # if inherited_settings doesn't exist on kvs
-            block_inherited = {}
-        if field.name in block_inherited:
-            result['default_value'] = block_inherited[field.name]
-        else:
-            result['default_value'] = field.to_json(field.default)
-        return result
 
 
 class XMLParsingService(DescriptorService):
@@ -1166,7 +1166,7 @@ class ModuleService(object):  # pylint: disable=abstract-method
         The url prefix to be used by XModules to call into handle_ajax
         """
         assert self.xmodule_instance is not None
-        return self.handler_url(self.xmodule_instance, 'xmodule_handler', '', '').rstrip('/?')
+        return self.runtime.handler_url(self.xmodule_instance, 'xmodule_handler', '', '').rstrip('/?')
 
 
 class DoNothingCache(object):

@@ -58,7 +58,7 @@ def export_to_xml(modulestore, contentstore, course_location, root_dir, course_d
     course = modulestore.get_course(course_id)
 
     fs = OSFS(root_dir)
-    export_fs = course.service.export_fs = fs.makeopendir(course_dir)
+    export_fs = course.system.export_fs = fs.makeopendir(course_dir)
 
     root = lxml.etree.Element('unknown')
     course.add_xml_to_node(root)

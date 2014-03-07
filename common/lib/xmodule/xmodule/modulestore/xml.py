@@ -246,9 +246,12 @@ class LocationReader(IdReader):
     IdReader for definition and usage ids that are Locations
     """
     def get_definition_id(self, usage_id):
+        print usage_id
+        assert isinstance(usage_id, Location)
         return usage_id
 
     def get_block_type(self, def_id):
+        assert isinstance(def_id, Location)
         location = def_id
         return location.category
 

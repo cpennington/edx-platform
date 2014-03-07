@@ -31,7 +31,12 @@ def wrap_fragment(fragment, new_content):
     return wrapper_frag
 
 
-def wrap_xblock(runtime_class, block, view, frag, context, display_name_only=False, extra_data=None):  # pylint: disable=unused-argument
+def always_false(block):
+    """Always returns False"""
+    return False
+
+
+def wrap_xblock(runtime_class, block, view, frag, context, display_name_only=always_false, extra_data=None):  # pylint: disable=unused-argument
     """
     Wraps the results of rendering an XBlock view in a standard <section> with identifying
     data so that the appropriate javascript module can be loaded onto it.
@@ -41,7 +46,7 @@ def wrap_xblock(runtime_class, block, view, frag, context, display_name_only=Fal
     :param view: The name of the view that rendered the fragment being wrapped
     :param frag: The :class:`Fragment` to be wrapped
     :param context: The context passed to the view being rendered
-    :param display_name_only: If true, don't render the fragment content at all.
+    :param display_name_only: A function of a block. If it returns True, don't render the fragment content at all.
         Instead, just render the `display_name` of `block`
     :param extra_data: A dictionary with extra data values to be set on the wrapper
     """
@@ -75,7 +80,7 @@ def wrap_xblock(runtime_class, block, view, frag, context, display_name_only=Fal
         data['usage-id'] = quote_slashes(unicode(block.scope_ids.usage_id).encode('utf-8'))
 
     template_context = {
-        'content': block.display_name if display_name_only else frag.content,
+        'content': block.display_name if display_name_only(block) else frag.content,
         'classes': css_classes,
         'display_name': block.display_name_with_default,
         'data_attributes': ' '.join(u'data-{}="{}"'.format(key, value) for key, value in data.items()),
@@ -112,7 +117,7 @@ def replace_course_urls(course_id, block, view, frag, context):  # pylint: disab
     return wrap_fragment(frag, static_replace.replace_course_urls(frag.content, course_id))
 
 
-def replace_static_urls(data_dir, block, view, frag, context, course_id=None, static_asset_path=''):  # pylint: disable=unused-argument
+def replace_static_urls(data_dir, block, view, frag, context, static_asset_path=''):  # pylint: disable=unused-argument
     """
     Updates the supplied module with a new get_html function that wraps
     the old get_html function and substitutes urls of the form /static/...
@@ -121,7 +126,7 @@ def replace_static_urls(data_dir, block, view, frag, context, course_id=None, st
     return wrap_fragment(frag, static_replace.replace_static_urls(
         frag.content,
         data_dir,
-        course_id,
+        block.course_id,
         static_asset_path=static_asset_path
     ))
 

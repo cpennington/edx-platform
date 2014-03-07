@@ -184,7 +184,7 @@ class CachingDescriptorService(MakoDescriptorService):
 
                 kvs = MongoKeyValueStore(
                     definition.get('data', {}),
-                    definition.get('children', []),
+                    [Location(child) for child in definition.get('children', [])],
                     metadata,
                 )
 
@@ -314,7 +314,7 @@ class MongoModuleStore(ModuleStoreWriteBase):
 
     @property
     def runtime(self):
-        return self.build_runtime(self.__class__.__name__, id_reader=LocationReader, field_data=None)
+        return self.build_runtime(self.__class__.__name__, id_reader=LocationReader(), field_data=None)
 
     def compute_metadata_inheritance_tree(self, location):
         '''
@@ -625,8 +625,7 @@ class MongoModuleStore(ModuleStoreWriteBase):
         :param metadata: can be empty, the initial metadata for the kvs
         :param system: if you already have an xblock from the course, the xblock.runtime value
         """
-        if not isinstance(location, Location):
-            location = Location(location)
+        location = Location(location)
         # differs from split mongo in that I believe most of this logic should be above the persistence
         # layer but added it here to enable quick conversion. I'll need to reconcile these.
         if metadata is None:

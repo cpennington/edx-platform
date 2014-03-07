@@ -18,8 +18,8 @@ class SplitMongoIdReader(IdReader):
     An :class:`~xblock.runtime.IdReader` associated with a particular
     :class:`.CachingDescriptorService`.
     """
-    def __init__(self, system):
-        self.system = system
+    def __init__(self, runtime):
+        self.system = runtime.service(None, 'xdescriptor')
 
     def get_definition_id(self, usage_id):
         usage = self.system.load_item(usage_id)
@@ -37,7 +37,7 @@ class CachingDescriptorService(MakoDescriptorService):
 
     Computes the settings (nee 'metadata') inheritance upon creation.
     """
-    def __init__(self, modulestore, course_entry, default_class, module_data, lazy, **kwargs):
+    def __init__(self, modulestore, course_entry, default_class, module_data, lazy, runtime, **kwargs):
         """
         Computes the settings inheritance and sets up the cache.
 
@@ -52,8 +52,6 @@ class CachingDescriptorService(MakoDescriptorService):
             underlying modulestore
         """
         super(CachingDescriptorService, self).__init__(
-            id_reader=SplitMongoIdReader(self),
-            field_data=None,
             load_item=self._load_item,
             **kwargs
         )
@@ -70,6 +68,7 @@ class CachingDescriptorService(MakoDescriptorService):
         )
         self.default_class = default_class
         self.local_modules = {}
+        self.runtime = runtime
 
     def _load_item(self, block_id, course_entry_override=None):
         if isinstance(block_id, BlockUsageLocator) and isinstance(block_id.block_id, LocalId):
@@ -86,7 +85,7 @@ class CachingDescriptorService(MakoDescriptorService):
             if json_data is None:
                 raise ItemNotFoundError(block_id)
 
-        class_ = self.load_block_type(json_data.get('category'))
+        class_ = self.runtime.load_block_type(json_data.get('category'))
         return self.xblock_from_json(class_, block_id, json_data, course_entry_override)
 
     # xblock's runtime does not always pass enough contextual information to figure out
@@ -129,8 +128,10 @@ class CachingDescriptorService(MakoDescriptorService):
         )
         field_data = KvsFieldData(kvs)
 
+        self.runtime.bind_service(block_locator, 'xdescriptor', self)
+
         try:
-            module = self.construct_xblock_from_class(
+            module = self.runtime.construct_xblock_from_class(
                 class_,
                 ScopeIds(None, json_data.get('category'), definition_id, block_locator),
                 field_data,

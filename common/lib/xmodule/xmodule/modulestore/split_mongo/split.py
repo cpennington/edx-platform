@@ -188,6 +188,7 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
                 error_tracker=self.error_tracker,
                 render_template=self.render_template,
                 resources_fs=None,
+                runtime=self.runtime,
             )
             self._add_cache(course_entry['structure']['_id'], system)
             self.cache_items(system, block_ids, depth, lazy)
@@ -1070,7 +1071,7 @@ class SplitMongoModuleStore(ModuleStoreWriteBase):
         if xblock.has_children:
             for child in xblock.children:
                 if isinstance(child.block_id, LocalId):
-                    child_block = xblock.system.get_block(child)
+                    child_block = xblock.runtime.get_block(child)
                     is_updated = self._persist_subdag(child_block, user_id, structure_blocks, new_id) or is_updated
                     children.append(child_block.location.block_id)
                 else:

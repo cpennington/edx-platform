@@ -26,6 +26,7 @@ from xblock.runtime import Mixologist
 from xmodule.x_module import prefer_xmodules
 
 from lms.lib.xblock.runtime import unquote_slashes
+from cms.lib.xblock.runtime import StudioRuntime
 
 from contentstore.utils import get_lms_link_for_item, compute_unit_state, UnitState
 
@@ -145,15 +146,6 @@ def subsection_handler(request, tag=None, package_id=None, branch=None, version_
         return HttpResponseBadRequest("Only supports html requests")
 
 
-def _load_mixed_class(category):
-    """
-    Load an XBlock by category name, and apply all defined mixins
-    """
-    component_class = XBlock.load_class(category, select=settings.XBLOCK_SELECT_FUNCTION)
-    mixologist = Mixologist(settings.XBLOCK_MIXINS)
-    return mixologist.mix(component_class)
-
-
 @require_http_methods(["GET"])
 @login_required
 def unit_handler(request, tag=None, package_id=None, branch=None, version_guid=None, block=None):
@@ -172,8 +164,11 @@ def unit_handler(request, tag=None, package_id=None, branch=None, version_guid=N
             return HttpResponseBadRequest()
 
         component_templates = defaultdict(list)
+
+        runtime = StudioRuntime(id_reader=None, field_data=None)
+
         for category in COMPONENT_TYPES:
-            component_class = _load_mixed_class(category)
+            component_class = runtime.load_block_type(category)
             # add the default template
             # TODO: Once mixins are defined per-application, rather than per-runtime,
             # this should use a cms mixed-in class. (cpennington)
@@ -213,7 +208,7 @@ def unit_handler(request, tag=None, package_id=None, branch=None, version_guid=N
                     # class? i.e., can an advanced have more than one entry in the
                     # menu? one for default and others for prefilled boilerplates?
                     try:
-                        component_class = _load_mixed_class(category)
+                        component_class = runtime.load_block_type(category)
 
                         component_templates['advanced'].append(
                             (

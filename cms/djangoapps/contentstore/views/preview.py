@@ -53,6 +53,7 @@ def preview_handler(request, usage_id, handler, suffix=''):
     location = unquote_slashes(usage_id)
 
     descriptor = modulestore().get_item(location)
+    descriptor.runtime = PreviewRuntime.from_studio_runtime(descriptor.runtime)
     instance = _load_preview_module(request, descriptor)
     # Let the module handle the AJAX
     req = django_to_webob_request(request)
@@ -79,10 +80,33 @@ def preview_handler(request, usage_id, handler, suffix=''):
     return webob_to_django_response(resp)
 
 
-class PreviewModuleService(StudioRuntime):  # pylint: disable=abstract-method
-    """
-    An XModule ModuleService for use in Studio previews
-    """
+class PreviewRuntime(StudioRuntime):  # pylint: disable=abstract-method
+
+    def __init__(self, **kwargs):
+        # Set up functions to modify the fragment produced by student_view
+        kwargs['wrappers'] = (
+            # This wrapper wraps the module in the template specified above
+            partial(wrap_xblock, 'PreviewRuntime', display_name_only=lambda block: block.scope_ids.block_type == 'static_tab'),
+
+            # This wrapper replaces urls in the output that start with /static
+            # with the correct course-specific url for the static content
+            partial(replace_static_urls, None),
+        ),
+        super(PreviewRuntime, self).__init__(**kwargs)
+
+    @classmethod
+    def from_studio_runtime(cls, studio_runtime):
+        runtime = cls(
+            id_reader=studio_runtime.id_reader,
+            field_data=studio_runtime.field_data,
+            mixins=studio_runtime.mixologist._mixins,
+            services=studio_runtime._services,
+            default_class=studio_runtime.default_class,
+            select=studio_runtime.select,
+        )
+        runtime._service_bindings = dict(studio_runtime._service_bindings)
+        return runtime
+
     def handler_url(self, block, handler_name, suffix='', query='', thirdparty=False):
         return reverse('preview_handler', kwargs={
             'usage_id': quote_slashes(unicode(block.scope_ids.usage_id).encode('utf-8')),
@@ -106,30 +130,20 @@ def _preview_module_system(request, descriptor):
     else:
         course_id = get_course_for_item(descriptor.location).location.course_id
 
-    return PreviewModuleService(
+    return ModuleService(
         static_url=settings.STATIC_URL,
         # TODO (cpennington): Do we want to track how instructors are using the preview problems?
         track_function=lambda event_type, event: None,
-        filestore=descriptor.runtime.resources_fs,
+        filestore=descriptor.system.resources_fs,
         get_module=partial(_load_preview_module, request),
         render_template=render_from_lms,
         debug=True,
         replace_urls=partial(static_replace.replace_static_urls, data_directory=None, course_id=course_id),
         user=request.user,
         can_execute_unsafe_code=(lambda: can_execute_unsafe_code(course_id)),
-        mixins=settings.XBLOCK_MIXINS,
         course_id=course_id,
         anonymous_student_id='student',
 
-        # Set up functions to modify the fragment produced by student_view
-        wrappers=(
-            # This wrapper wraps the module in the template specified above
-            partial(wrap_xblock, 'PreviewRuntime', display_name_only=descriptor.category == 'static_tab'),
-
-            # This wrapper replaces urls in the output that start with /static
-            # with the correct course-specific url for the static content
-            partial(replace_static_urls, None, course_id=course_id),
-        ),
         error_descriptor_class=ErrorDescriptor,
         # get_user_role accepts a location or a CourseLocator.
         # If descriptor.location is a CourseLocator, course_id is unused.

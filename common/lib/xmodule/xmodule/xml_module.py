@@ -368,7 +368,7 @@ class XmlDescriptor(XModuleDescriptor):
 
         # Set up self.service.export_fs so that it's available through future
         # uses of the pure xblock add_xml_to_node api
-        self.service.export_fs = resource_fs
+        self.system.export_fs = resource_fs
 
         # Get the definition
         xml_object = self.definition_to_xml(resource_fs)
