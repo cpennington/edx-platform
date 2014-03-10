@@ -230,7 +230,7 @@ def add_repo(repo, rdir_in, branch=None):
     match = re.search('(?ms)===> IMPORTING course to location (\S+)',
                       ret_import)
     if match:
-        location = Location(match.group(1))
+        location = match.group(1)
         log.debug('location = {0}'.format(location))
         course_id = location.course_id
 

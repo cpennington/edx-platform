@@ -157,7 +157,6 @@ def get_module(user, request, location, field_data_cache, course_id,
     if possible.  If not possible, return None.
     """
     try:
-        location = Location(location)
         descriptor = modulestore().get_instance(course_id, location, depth=depth)
         return get_module_for_descriptor(user, request, descriptor, field_data_cache, course_id,
                                          position=position,

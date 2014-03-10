@@ -27,7 +27,7 @@ from open_ended_grading import open_ended_notifications
 
 import waffle
 
-# We only need to scrape strings for i18n in this file, since ugettext is 
+# We only need to scrape strings for i18n in this file, since ugettext is
 # called on them in the template:
 # https://github.com/edx/edx-platform/blob/master/lms/templates/courseware/course_navigation.html#L29
 _ = lambda text: text
