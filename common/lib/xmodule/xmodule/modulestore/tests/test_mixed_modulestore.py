@@ -340,6 +340,7 @@ class TestMixedModuleStore(LocMapperSetupSansDjango):
         if default_ms == 'split':
             self.assertEqual(found_orphans, [orphan.location.version_agnostic()])
         else:
+<<<<<<< Updated upstream
             self.assertEqual(found_orphans, [unicode(orphan.location)])
 
     @ddt.data('split')
@@ -356,6 +357,9 @@ class TestMixedModuleStore(LocMapperSetupSansDjango):
             orphan.location.version_agnostic().as_course_locator(),
             self.course_locations[self.MONGO_COURSEID].as_course_locator()
         )
+=======
+            self.assertEqual(found_orphans, [orphan.location.to_deprecated_string()])
+>>>>>>> Stashed changes
 
     @ddt.data('direct')
     def test_create_item_from_parent_location(self, default_ms):

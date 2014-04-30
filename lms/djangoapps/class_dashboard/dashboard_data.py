@@ -197,7 +197,7 @@ def get_d3_problem_grade_distrib(course_id):
                                     'color': percent,
                                     'value': count_grade,
                                     'tooltip': tooltip,
-                                    'module_url': child.location.url(),
+                                    'module_url': child.location.to_deprecated_string(),
                                 })
 
                         problem = {
@@ -242,8 +242,8 @@ def get_d3_sequential_open_distrib(course_id):
             subsection_name = own_metadata(subsection).get('display_name', '')
 
             num_students = 0
-            if subsection.location.url() in sequential_open_distrib:
-                num_students = sequential_open_distrib[subsection.location.url()]
+            if subsection.location.to_deprecated_string() in sequential_open_distrib:
+                num_students = sequential_open_distrib[subsection.location.to_deprecated_string()]
 
             stack_data = []
             tooltip = _("{num_students} student(s) opened Subsection {subsection_num}: {subsection_name}").format(
@@ -256,7 +256,7 @@ def get_d3_sequential_open_distrib(course_id):
                 'color': 0,
                 'value': num_students,
                 'tooltip': tooltip,
-                'module_url': subsection.location.url(),
+                'module_url': subsection.location.to_deprecated_string(),
             })
             subsection = {
                 'xValue': "SS {0}".format(c_subsection),
@@ -308,9 +308,15 @@ def get_d3_section_grade_distrib(course_id, section):
             for child in unit.get_children():
                 if (child.location.category == 'problem'):
                     c_problem += 1
+<<<<<<< Updated upstream
                     problem_set.append(child.location.url())
                     problem_info[child.location.url()] = {
                         'id': child.location.url(),
+=======
+                    problem_set.append(child.location)
+                    problem_info[child.location] = {
+                        'id': child.location.to_deprecated_string(),
+>>>>>>> Stashed changes
                         'x_value': "P{0}.{1}.{2}".format(c_subsection, c_unit, c_problem),
                         'display_name': own_metadata(child).get('display_name', ''),
                     }

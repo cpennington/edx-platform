@@ -8,7 +8,7 @@ structure:
     '_id': <location.as_dict>,
     'metadata': <dict containing all Scope.settings fields>
     'definition': <dict containing all Scope.content fields>
-    'definition.children': <list of all child location.url()s>
+    'definition.children': <list of all child location.to_deprecated_string()s>
 }
 """
 
@@ -193,7 +193,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem):
 
                     # Convert the serialized fields values in self.cached_metadata
                     # to python values
-                    metadata_to_inherit = self.cached_metadata.get(non_draft_loc.url(), {})
+                    metadata_to_inherit = self.cached_metadata.get(non_draft_loc.to_deprecated_string(), {})
                     inherit_metadata(module, metadata_to_inherit)
                 # decache any computed pending field settings
                 module.save()
@@ -338,11 +338,18 @@ class MongoModuleStore(ModuleStoreWriteBase):
 
         # now go through the results and order them by the location url
         for result in resultset:
+<<<<<<< Updated upstream
             location = Location(result['_id'])
             # We need to collate between draft and non-draft
             # i.e. draft verticals will have draft children but will have non-draft parents currently
             location = location.replace(revision=None)
             location_url = location.url()
+=======
+            # manually pick it apart b/c the db has tag and we want revision = None regardless
+            location = self._location_from_id(result['_id'], course_id.run).replace(revision=None)
+
+            location_url = location.to_deprecated_string()
+>>>>>>> Stashed changes
             if location_url in results_by_url:
                 existing_children = results_by_url[location_url].get('definition', {}).get('children', [])
                 additional_children = result.get('definition', {}).get('children', [])

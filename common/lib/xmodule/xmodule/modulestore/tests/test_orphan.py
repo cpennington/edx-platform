@@ -137,12 +137,21 @@ class TestOrphan(unittest.TestCase):
         """
         orphans = self.old_mongo.get_orphans(self.course_location, None)
         self.assertEqual(len(orphans), 3, "Wrong # {}".format(orphans))
+<<<<<<< Updated upstream
         location = self.course_location.replace(category='chapter', name='OrphanChapter')
         self.assertIn(location.url(), orphans)
         location = self.course_location.replace(category='vertical', name='OrphanVert')
         self.assertIn(location.url(), orphans)
         location = self.course_location.replace(category='html', name='OrphanHtml')
         self.assertIn(location.url(), orphans)
+=======
+        location = self.old_course_key.make_usage_key('chapter', name='OrphanChapter')
+        self.assertIn(location.to_deprecated_string(), orphans)
+        location = self.old_course_key.make_usage_key('vertical', name='OrphanVert')
+        self.assertIn(location.to_deprecated_string(), orphans)
+        location = self.old_course_key.make_usage_key('html', 'OrphanHtml')
+        self.assertIn(location.to_deprecated_string(), orphans)
+>>>>>>> Stashed changes
 
     def test_split_orphan(self):
         """
