@@ -863,18 +863,10 @@ class ContentStoreToyCourseTest(ContentStoreTestCase):
         import_from_xml(self.store, self.user.id, 'common/test/data/', ['toy'])
         course_id = SlashSeparatedCourseKey('edX', 'toy', '2012_Fall')
 
-        wrapper = MongoCollectionFindWrapper(mongo_store.collection.find)
-        mongo_store.collection.find = wrapper.find
-
         # set the branch to 'publish' in order to prevent extra lookups of draft versions
         with mongo_store.branch_setting(ModuleStoreEnum.Branch.published_only):
-            course = mongo_store.get_course(course_id, depth=2)
-
-            # make sure we haven't done too many round trips to DB
-            # note we say 3 round trips here for 1) the course, and 2 & 3) for the chapters and sequentials
-            # Because we're querying from the top of the tree, we cache information needed for inheritance,
-            # so we don't need to make an extra query to compute it.
-            self.assertEqual(wrapper.counter, 3)
+            with check_mongo_calls(4, 0):
+                course = mongo_store.get_course(course_id, depth=2)
 
             # make sure we pre-fetched a known sequential which should be at depth=2
             self.assertTrue(course_id.make_usage_key('sequential', 'vertical_sequential') in course.system.module_data)
@@ -882,12 +874,11 @@ class ContentStoreToyCourseTest(ContentStoreTestCase):
             # make sure we don't have a specific vertical which should be at depth=3
             self.assertFalse(course_id.make_usage_key('vertical', 'vertical_test') in course.system.module_data)
 
-        # Now, test with the branch set to draft.  We should have one extra round trip call to check for
-        # the existence of the draft versions
-        wrapper.counter = 0
-        mongo_store.get_course(course_id, depth=2)
-        self.assertEqual(wrapper.counter, 4)
-
+        # Now, test with the branch set to draft. No extra round trips b/c it doesn't go deep enough to get
+        # beyond direct only categories
+        with mongo_store.branch_setting(ModuleStoreEnum.Branch.draft_preferred):
+            with check_mongo_calls(4, 0):
+                mongo_store.get_course(course_id, depth=2)
 
     def test_export_course_without_content_store(self):
         content_store = contentstore()
