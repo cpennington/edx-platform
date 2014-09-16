@@ -83,6 +83,7 @@ def create_modulestore_instance(engine, content_store, doc_store_config, options
         doc_store_config=doc_store_config,
         i18n_service=i18n_service or ModuleI18nService(),
         fs_service=fs_service or xblock.reference.plugins.FSService(),
+        version_aware=False,
         **_options
     )
 

@@ -60,6 +60,7 @@ class TestMixedModuleStore(unittest.TestCase):
         'fs_root': DATA_DIR,
         'render_template': RENDER_TEMPLATE,
         'xblock_mixins': (EditInfoMixin, InheritanceMixin),
+        'version_aware': False,
     }
     DOC_STORE_CONFIG = {
         'host': HOST,
@@ -94,7 +95,8 @@ class TestMixedModuleStore(unittest.TestCase):
                     'default_class': 'xmodule.hidden_module.HiddenDescriptor',
                 }
             },
-        ]
+        ],
+        'version_aware': modulestore_options['version_aware']
     }
 
     def _compare_ignore_version(self, loc1, loc2, msg=None):
@@ -770,9 +772,10 @@ class TestMixedModuleStore(unittest.TestCase):
     #   3) wildcard split if it has any (1) but it doesn't
     # Split:
     #   1) wildcard split search,
-    #   2-4) active_versions, structure, definition (s/b lazy; so, unnecessary)
-    #   5) wildcard draft mongo which has none
-    @ddt.data(('draft', 3, 0), ('split', 5, 0))
+    #   2) structure
+    #   3) definition (s/b lazy; so, unnecessary)
+    #   4) wildcard draft mongo which has none
+    @ddt.data(('draft', 3, 0), ('split', 4, 0))
     @ddt.unpack
     def test_get_courses(self, default_ms, max_find, max_send):
         self.initdb(default_ms)
@@ -816,8 +819,8 @@ class TestMixedModuleStore(unittest.TestCase):
             xml_store.create_course("org", "course", "run", self.user_id)
 
     # draft is 2: find out which ms owns course, get item
-    # split: find out which ms owns course, active_versions, structure, definition (definition s/b unnecessary unless lazy is false)
-    @ddt.data(('draft', 2, 0), ('split', 4, 0))
+    # split: active_versions, structure, definition (definition s/b unnecessary unless lazy is false)
+    @ddt.data(('draft', 2, 0), ('split', 3, 0))
     @ddt.unpack
     def test_get_course(self, default_ms, max_find, max_send):
         """

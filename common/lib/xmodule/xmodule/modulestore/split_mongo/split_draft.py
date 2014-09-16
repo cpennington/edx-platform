@@ -84,7 +84,8 @@ class DraftVersioningModuleStore(ModuleStoreDraftAndPublished, SplitMongoModuleS
         other context, you may blow away another user's changes.
         NOTE: only publishes the item at location: no children get published.
         """
-        if location.branch == ModuleStoreEnum.BranchName.draft and category in DIRECT_ONLY_CATEGORIES:
+        branch = location.course_key._branch
+        if branch == ModuleStoreEnum.BranchName.draft and category in DIRECT_ONLY_CATEGORIES:
             # version_agnostic b/c of above assumption in docstring
             self.publish(location.version_agnostic(), user_id, blacklist=EXCLUDE_ALL, **kwargs)
 
@@ -242,7 +243,7 @@ class DraftVersioningModuleStore(ModuleStoreDraftAndPublished, SplitMongoModuleS
         :return: True if the draft and published versions differ
         """
         def get_course(branch_name):
-            return self._lookup_course(xblock.location.course_key.for_branch(branch_name))['structure']
+            return self._lookup_course(xblock.location.course_key.for_branch(branch_name)).structure
 
         def get_block(course_structure, block_key):
             return self._get_block_from_structure(course_structure, block_key)
@@ -318,7 +319,7 @@ class DraftVersioningModuleStore(ModuleStoreDraftAndPublished, SplitMongoModuleS
             # get head version of Published branch
             published_course_structure = self._lookup_course(
                 location.course_key.for_branch(ModuleStoreEnum.BranchName.published)
-            )['structure']
+            ).structure
             published_block = self._get_block_from_structure(
                 published_course_structure,
                 BlockKey.from_usage_key(location)
@@ -327,7 +328,7 @@ class DraftVersioningModuleStore(ModuleStoreDraftAndPublished, SplitMongoModuleS
                 raise InvalidVersionError(location)
 
             # create a new versioned draft structure
-            draft_course_structure = self._lookup_course(draft_course_key)['structure']
+            draft_course_structure = self._lookup_course(draft_course_key).structure
             new_structure = self.version_structure(draft_course_key, draft_course_structure, user_id)
 
             # remove the block and its descendants from the new structure
@@ -353,7 +354,7 @@ class DraftVersioningModuleStore(ModuleStoreDraftAndPublished, SplitMongoModuleS
             self.update_structure(draft_course_key, new_structure)
             index_entry = self._get_index_if_valid(draft_course_key)
             if index_entry is not None:
-                self._update_head(draft_course_key, index_entry, ModuleStoreEnum.BranchName.draft, new_structure['_id'])
+                self._update_head(draft_course_key, index_entry, new_structure['_id'])
 
     def get_course_history_info(self, course_locator):
         """
@@ -394,7 +395,7 @@ class DraftVersioningModuleStore(ModuleStoreDraftAndPublished, SplitMongoModuleS
         pass
 
     def _get_head(self, xblock, branch):
-        course_structure = self._lookup_course(xblock.location.course_key.for_branch(branch))['structure']
+        course_structure = self._lookup_course(xblock.location.course_key.for_branch(branch)).structure
         return self._get_block_from_structure(course_structure, BlockKey.from_usage_key(xblock.location))
 
     def _get_version(self, block):

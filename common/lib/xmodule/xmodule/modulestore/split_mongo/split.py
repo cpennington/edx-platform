@@ -296,14 +296,15 @@ class SplitBulkWriteMixin(BulkOperationsMixin):
         """
         Copy the structure and update the history info (edited_by, edited_on, previous_version)
         """
-        if course_key.branch is None:
+        branch = course_key._branch
+        if branch is None:
             raise InsufficientSpecificationError(course_key)
 
         bulk_write_record = self._get_bulk_ops_record(course_key)
 
         # If we have an active bulk write, and it's already been edited, then just use that structure
-        if bulk_write_record.active and course_key.branch in bulk_write_record.dirty_branches:
-            return bulk_write_record.structure_for_branch(course_key.branch)
+        if bulk_write_record.active and branch in bulk_write_record.dirty_branches:
+            return bulk_write_record.structure_for_branch(branch)
 
         # Otherwise, make a new structure
         new_structure = copy.deepcopy(structure)
@@ -315,7 +316,7 @@ class SplitBulkWriteMixin(BulkOperationsMixin):
 
         # If we're in a bulk write, update the structure used there, and mark it as dirty
         if bulk_write_record.active:
-            bulk_write_record.set_structure_for_branch(course_key.branch, new_structure)
+            bulk_write_record.set_structure_for_branch(branch, new_structure)
 
         return new_structure
 
@@ -488,6 +489,9 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         if fs_service is not None:
             self.services["fs"] = fs_service
 
+    def _course_key_type(self, *args, **kwargs):
+        return CourseLocator(version_agnostic=not self.is_version_aware, *args, **kwargs)
+
     def close_connections(self):
         """
         Closes any open connections to the underlying databases
@@ -614,7 +618,9 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         :param course_key: any subclass of CourseLocator
         '''
         if course_key.org and course_key.course and course_key.run:
-            if course_key.branch is None:
+            branch = course_key._branch
+
+            if branch is None:
                 raise InsufficientSpecificationError(course_key)
 
             # use the course id
@@ -622,10 +628,10 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
 
             if index is None:
                 raise ItemNotFoundError(course_key)
-            if course_key.branch not in index['versions']:
+            if branch not in index['versions']:
                 raise ItemNotFoundError(course_key)
 
-            version_guid = index['versions'][course_key.branch]
+            version_guid = index['versions'][branch]
 
             if course_key.version_guid is not None and version_guid != course_key.version_guid:
                 # This may be a bit too touchy but it's hard to infer intent
@@ -678,13 +684,16 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         result = []
         for entry in matching_structures:
             course_info = id_version_map[entry['_id']]
-            envelope = {
-                'org': course_info['org'],
-                'course': course_info['course'],
-                'run': course_info['run'],
-                'branch': branch,
-                'structure': entry,
-            }
+            envelope = CourseEnvelope(
+                self._course_key_type(
+                    course_info['org'],
+                    course_info['course'],
+                    course_info['run'],
+                    branch=branch,
+                    version_guid=entry['_id']
+                ),
+                entry,
+            )
             root = entry['root']
             course_list = self._load_items(envelope, [root], 0, lazy=True, **kwargs)
             if not isinstance(course_list[0], ErrorDescriptor):
@@ -698,7 +707,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
 
         This key may represent a course that doesn't exist in this modulestore.
         """
-        return CourseLocator(org, course, run)
+        return self._course_key_type(org, course, run)
 
     def get_course(self, course_id, depth=0, **kwargs):
         '''
@@ -727,7 +736,12 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
             return False
 
         course_index = self.get_course_index(course_id, ignore_case)
-        return CourseLocator(course_index['org'], course_index['course'], course_index['run'], course_id.branch) if course_index else None
+        return self._course_key_type(
+            course_index['org'],
+            course_index['course'],
+            course_index['run'],
+            course_id._branch
+        ) if course_index else None
 
     def has_item(self, usage_key):
         """
@@ -845,8 +859,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         parent_id = self._get_parent_from_structure(BlockKey.from_usage_key(locator), course.structure)
         if parent_id is None:
             return None
-        return BlockUsageLocator.make_relative(
-            locator,
+        return locator.course_key.make_usage_key(
             block_type=parent_id.type,
             block_id=parent_id.id,
         )
@@ -932,19 +945,20 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         '''
         if version_history_depth < 1:
             return None
-        if course_locator.version_guid is None:
+
+        version_guid = course_locator._branch
+
+        if version_guid is None:
             course = self._lookup_course(course_locator)
             version_guid = course.structure['_id']
             course_locator = course_locator.for_version(version_guid)
-        else:
-            version_guid = course_locator.version_guid
 
         # TODO if depth is significant, it may make sense to get all that have the same original_version
         # and reconstruct the subtree from version_guid
         next_entries = self.find_structures_derived_from([version_guid])
         # must only scan cursor's once
         next_versions = [struct for struct in next_entries]
-        result = {version_guid: [CourseLocator(version_guid=struct['_id']) for struct in next_versions]}
+        result = {version_guid: [self._course_key_type(version_guid=struct['_id']) for struct in next_versions]}
         depth = 1
         while depth < version_history_depth and len(next_versions) > 0:
             depth += 1
@@ -952,7 +966,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
             next_versions = [struct for struct in next_entries]
             for course_structure in next_versions:
                 result.setdefault(course_structure['previous_version'], []).append(
-                    CourseLocator(version_guid=struct['_id']))
+                    self._course_key_type(version_guid=struct['_id']))
         return VersionTree(course_locator, result)
 
     def get_block_generations(self, block_locator):
@@ -1193,15 +1207,13 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
                 # see if any search targets changed
                 if fields is not None:
                     self._update_search_targets(index_entry, fields)
-                self._update_head(course_key, index_entry, course_key.branch, new_id)
-                item_loc = BlockUsageLocator(
-                    course_key.version_agnostic(),
+                self._update_head(course_key, index_entry, new_id)
+                item_loc = course_key.version_agnostic().make_usage_key(
                     block_type=block_type,
                     block_id=block_key.id,
                 )
             else:
-                item_loc = BlockUsageLocator(
-                    CourseLocator(version_guid=new_id),
+                item_loc = self._course_key_type(version_guid=new_id).make_usage_key(
                     block_type=block_type,
                     block_id=block_key.id,
                 )
@@ -1325,7 +1337,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         # either need to assert this or have a default
         assert master_branch is not None
         # check course and run's uniqueness
-        locator = CourseLocator(org=org, course=course, run=run, branch=master_branch)
+        locator = self._course_key_type(org=org, course=course, run=run, branch=master_branch)
         index = self.get_course_index(locator)
         if index is not None:
             raise DuplicateCourseError(locator, index)
@@ -1373,7 +1385,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
 
         elif block_fields or definition_fields:  # pointing to existing course w/ some overrides
             # just get the draft_version structure
-            draft_version = CourseLocator(version_guid=versions_dict[master_branch])
+            draft_version = self._course_key_type(version_guid=versions_dict[master_branch])
             draft_structure = self._lookup_course(draft_version).structure
             draft_structure = self.version_structure(locator, draft_structure, user_id)
             new_id = draft_structure['_id']
@@ -1398,7 +1410,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
             versions_dict[master_branch] = new_id
         else:  # Pointing to an existing course structure
             new_id = versions_dict[master_branch]
-            draft_version = CourseLocator(version_guid=new_id)
+            draft_version = self._course_key_type(version_guid=new_id)
             draft_structure = self._lookup_course(draft_version).structure
 
         locator = locator.replace(version_guid=new_id)
@@ -1512,16 +1524,16 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
                 if index_entry is not None:
                     self._update_search_targets(index_entry, definition_fields)
                     self._update_search_targets(index_entry, settings)
-                    course_key = CourseLocator(
+                    course_key = self._course_key_type(
                         org=index_entry['org'],
                         course=index_entry['course'],
                         run=index_entry['run'],
-                        branch=course_key.branch,
+                        branch=course_key._branch,
                         version_guid=new_id
                     )
-                    self._update_head(course_key, index_entry, course_key.branch, new_id)
+                    self._update_head(course_key, index_entry, new_id)
                 else:
-                    course_key = CourseLocator(version_guid=new_id)
+                    course_key = self._course_key_type(version_guid=new_id)
 
                 # fetch and return the new item--fetching is unnecessary but a good qc step
                 new_locator = course_key.make_usage_key(block_key.type, block_key.id)
@@ -1612,7 +1624,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
 
                 # update the index entry if appropriate
                 if index_entry is not None:
-                    self._update_head(course_key, index_entry, xblock.location.branch, new_id)
+                    self._update_head(course_key, index_entry, new_id)
 
                 # fetch and return the new item--fetching is unnecessary but a good qc step
                 return self.get_item(xblock.location.for_version(new_id))
@@ -1742,7 +1754,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
                 if index_entry is None:
                     # brand new course
                     raise ItemNotFoundError(destination_course)
-                if destination_course.branch not in index_entry['versions']:
+                if destination_course._branch not in index_entry['versions']:
                     # must be copying the dag root if there's no current dag
                     root_block_key = source_structure['root']
                     if not any(root_block_key == BlockKey.from_usage_key(subtree) for subtree in subtree_list):
@@ -1794,7 +1806,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
 
                 # update the db
                 self.update_structure(destination_course, destination_structure)
-                self._update_head(destination_course, index_entry, destination_course.branch, destination_structure['_id'])
+                self._update_head(destination_course, index_entry, destination_structure['_id'])
 
     def delete_item(self, usage_locator, user_id, force=False):
         """
@@ -1842,10 +1854,10 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
 
             if index_entry is not None:
                 # update the index entry if appropriate
-                self._update_head(usage_locator.course_key, index_entry, usage_locator.branch, new_id)
+                self._update_head(usage_locator.course_key, index_entry, new_id)
                 result = usage_locator.course_key.for_version(new_id)
             else:
-                result = CourseLocator(version_guid=new_id)
+                result = self._course_key_type(version_guid=new_id)
 
             return result
 
@@ -1987,16 +1999,23 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
             """
             # if this was taken from cache, then its fields are already converted
             if isinstance(block_key, BlockUsageLocator):
-                return block_key.map_into_course(course_key)
+                return course_key.make_usage_key(
+                    block_key.block_type,
+                    block_key.block_id
+                )
             elif not isinstance(block_key, BlockKey):
                 block_key = BlockKey(*block_key)
 
             try:
                 return course_key.make_usage_key(
-                    block_key.type, block_key.id
+                    block_key.type,
+                    block_key.id
                 )
             except KeyError:
-                return course_key.make_usage_key('unknown', block_key.id)
+                return course_key.make_usage_key(
+                    'unknown',
+                    block_key.id
+                )
 
         xblock_class = self.mixologist.mix(xblock_class)
         # Make a shallow copy, so that we aren't manipulating a cached field dictionary
@@ -2026,20 +2045,25 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         :param force: if false, raises VersionConflictError if the current head of the course != the one identified
         by course_key
         """
-        if course_key.org is None or course_key.course is None or course_key.run is None or course_key.branch is None:
+        branch = course_key._branch
+        if (course_key.org is None or
+            course_key.course is None or
+            course_key.run is None or
+            branch is None
+        ):
             return None
         else:
             index_entry = self.get_course_index(course_key)
             is_head = (
                 course_key.version_guid is None or
-                index_entry['versions'][course_key.branch] == course_key.version_guid
+                index_entry['versions'][branch] == course_key.version_guid
             )
             if (is_head or force):
                 return index_entry
             else:
                 raise VersionConflictError(
                     course_key,
-                    index_entry['versions'][course_key.branch]
+                    index_entry['versions'][branch]
                 )
 
     def _find_local_root(self, element_to_find, possibility, tree):
@@ -2064,7 +2088,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
             if field_name in self.SEARCH_TARGET_DICT:
                 index_entry.setdefault('search_targets', {})[field_name] = field_value
 
-    def _update_head(self, course_key, index_entry, branch, new_id):
+    def _update_head(self, course_key, index_entry, new_id):
         """
         Update the active index for the given course's branch to point to new_id
 
@@ -2074,7 +2098,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         """
         if not isinstance(new_id, ObjectId):
             raise TypeError('new_id must be an ObjectId, but is {!r}'.format(new_id))
-        index_entry['versions'][branch] = new_id
+        index_entry['versions'][course_key._branch] = new_id
         self.update_course_index(course_key, index_entry)
 
     def partition_xblock_fields_by_scope(self, xblock):
@@ -2317,7 +2341,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
             search_targets={field_name: field_value}
         )
         return [
-            CourseLocator(entry['org'], entry['course'], entry['run'])  # Branch agnostic
+            self._course_key_type(entry['org'], entry['course'], entry['run'])  # Branch agnostic
             for entry in entries
         ]
 

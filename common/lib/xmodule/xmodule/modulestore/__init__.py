@@ -13,7 +13,7 @@ from collections import namedtuple, defaultdict
 import collections
 from contextlib import contextmanager
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 from xblock.plugin import default_select
 
 from .exceptions import InvalidLocationError, InsufficientSpecificationError
@@ -259,6 +259,45 @@ class BulkOperationsMixin(object):
         return self._get_bulk_ops_record(course_key, ignore_case).active
 
 
+class VersionAwareThread(threading.local):
+    """
+    Add a thread-local for modulestore version awareness.
+    """
+    def __init__(self, version_aware=True, **kwargs):
+        super(VersionAwareThread, self).__init__(**kwargs)
+        self.aware = version_aware
+
+
+class VersionAwareMixin(object):
+    def __init__(self, *args, **kwargs):
+        self._version_aware = VersionAwareThread(kwargs.pop('version_aware', True))
+        super(VersionAwareMixin, self).__init__(*args, **kwargs)
+
+    @property
+    def is_version_aware(self):
+        """
+        Return whether this modulestore is currently returning version-aware modules.
+        """
+        return self._version_aware.aware
+
+    @contextmanager
+    def version_aware(self, aware=True):
+        """
+        Specify that the calling code wants or doesn't want key formats that support
+        versioning when querying the modulestore within the surrounded context.
+
+        This overrides the version_aware setting passed to the ModuleStore
+        at construction, and operates on a per-thread basis.
+        """
+        previous = self._version_aware.aware
+        self._version_aware.aware = aware
+        try:
+            yield
+        finally:
+            self._version_aware.aware = previous
+
+
+
 class ModuleStoreRead(object):
     """
     An abstract interface for a database backend that stores XModuleDescriptor
@@ -332,6 +371,7 @@ class ModuleStoreRead(object):
         For substring matching pass a regex object.
         for arbitrary function comparison such as date time comparison, pass
         the function as in start=lambda x: x < datetime.datetime(2014, 1, 1, 0, tzinfo=pytz.UTC)
+
 
         Args:
             fields_or_xblock (dict or XBlock): either the json blob (from the db or get_explicitly_set_fields)
@@ -479,6 +519,7 @@ class ModuleStoreRead(object):
         """
         pass
 
+    @abstractmethod
     @contextmanager
     def bulk_operations(self, course_id):
         """
@@ -495,6 +536,25 @@ class ModuleStoreRead(object):
         to be run during server startup.
         """
         pass
+
+    @abstractproperty
+    def version_aware(self):
+        """
+        Return whether this modulestore is currently returning version-aware modules.
+        """
+        pass
+
+    @abstractmethod
+    @contextmanager
+    def version_aware(self, aware=True):
+        """
+        Specify that the calling code wants or doesn't want key formats that support
+        versioning when querying the modulestore within the surrounded context.
+
+        This overrides the version_aware setting passed to the ModuleStore
+        at construction, and operates on a per-thread basis.
+        """
+        yield
 
 
 class ModuleStoreWrite(ModuleStoreRead):
@@ -614,7 +674,7 @@ class ModuleStoreWrite(ModuleStoreRead):
         pass
 
 
-class ModuleStoreReadBase(BulkOperationsMixin, ModuleStoreRead):
+class ModuleStoreReadBase(BulkOperationsMixin, VersionAwareMixin, ModuleStoreRead):
     '''
     Implement interface functionality that can be shared.
     '''

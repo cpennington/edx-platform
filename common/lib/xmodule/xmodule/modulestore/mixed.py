@@ -24,69 +24,6 @@ from .split_migrator import SplitMigrator
 log = logging.getLogger(__name__)
 
 
-def strip_key(func):
-    """
-    A decorator for stripping version and branch information from return values that are, or contain, UsageKeys or
-    CourseKeys.
-    Additionally, the decorated function is called with an optional 'field_decorator' parameter that can be used
-    to strip any location(-containing) fields, which are not directly returned by the function.
-
-    The behavior can be controlled by passing 'remove_version' and 'remove_branch' booleans to the decorated
-    function's kwargs.
-    """
-    @functools.wraps(func)
-    def inner(*args, **kwargs):
-        """
-        Supported kwargs:
-            remove_version - If True, calls 'version_agnostic' on all return values, including those in lists and dicts.
-            remove_branch - If True, calls 'for_branch(None)' on all return values, including those in lists and dicts.
-            Note: The 'field_decorator' parameter passed to the decorated function is a function that honors the
-            values of these kwargs.
-        """
-
-        # remove version and branch, by default
-        rem_vers = kwargs.pop('remove_version', True)
-        rem_branch = kwargs.pop('remove_branch', True)
-
-        # helper function for stripping individual values
-        def strip_key_func(val):
-            """
-            Strips the version and branch information according to the settings of rem_vers and rem_branch.
-            Recursively calls this function if the given value has a 'location' attribute.
-            """
-            retval = val
-            if rem_vers and hasattr(retval, 'version_agnostic'):
-                retval = retval.version_agnostic()
-            if rem_branch and hasattr(retval, 'for_branch'):
-                retval = retval.for_branch(None)
-            if hasattr(retval, 'location'):
-                retval.location = strip_key_func(retval.location)
-            return retval
-
-        # function for stripping both, collection of, and individual, values
-        def strip_key_collection(field_value):
-            """
-            Calls strip_key_func for each element in the given value.
-            """
-            if rem_vers or rem_branch:
-                if isinstance(field_value, list):
-                    field_value = [strip_key_func(fv) for fv in field_value]
-                elif isinstance(field_value, dict):
-                    for key, val in field_value.iteritems():
-                        field_value[key] = strip_key_func(val)
-                else:
-                    field_value = strip_key_func(field_value)
-            return field_value
-
-        # call the decorated function
-        retval = func(field_decorator=strip_key_collection, *args, **kwargs)
-
-        # strip the return value
-        return strip_key_collection(retval)
-
-    return inner
-
-
 class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
     """
     ModuleStore knows how to route requests to the right persistence ms
@@ -199,7 +136,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._get_modulestore_for_courseid(usage_key.course_key)
         return store.has_item(usage_key, **kwargs)
 
-    @strip_key
     def get_item(self, usage_key, depth=0, **kwargs):
         """
         see parent doc
@@ -207,7 +143,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._get_modulestore_for_courseid(usage_key.course_key)
         return store.get_item(usage_key, depth, **kwargs)
 
-    @strip_key
     def get_items(self, course_key, **kwargs):
         """
         Returns:
@@ -239,7 +174,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._get_modulestore_for_courseid(course_key)
         return store.get_items(course_key, **kwargs)
 
-    @strip_key
     def get_courses(self, **kwargs):
         '''
         Returns a list containing the top level XModuleDescriptors of the courses in this modulestore.
@@ -270,7 +204,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         # Otherwise, return the key created by the default store
         return self.default_modulestore.make_course_key(org, course, run)
 
-    @strip_key
     def get_course(self, course_key, depth=0, **kwargs):
         """
         returns the course module associated with the course_id. If no such course exists,
@@ -285,7 +218,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         except ItemNotFoundError:
             return None
 
-    @strip_key
     def has_course(self, course_id, ignore_case=False, **kwargs):
         """
         returns the course_id of the course if it was found, else None
@@ -309,7 +241,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._get_modulestore_for_courseid(course_key)
         return store.delete_course(course_key, user_id)
 
-    @strip_key
     def get_parent_location(self, location, **kwargs):
         """
         returns the parent locations for a given location
@@ -327,7 +258,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         """
         return self._get_modulestore_for_courseid(course_id).get_modulestore_type()
 
-    @strip_key
     def get_orphans(self, course_key, **kwargs):
         """
         Get all of the xblocks in the given course which have no parents and are not of types which are
@@ -347,7 +277,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
             errs.update(store.get_errored_courses())
         return errs
 
-    @strip_key
     def create_course(self, org, course, run, user_id, **kwargs):
         """
         Creates and returns the course.
@@ -376,7 +305,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
 
         return course
 
-    @strip_key
     def clone_course(self, source_course_id, dest_course_id, user_id, fields=None, **kwargs):
         """
         See the superclass for the general documentation.
@@ -402,7 +330,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
             # the super handles assets and any other necessities
             super(MixedModuleStore, self).clone_course(source_course_id, dest_course_id, user_id, fields, **kwargs)
 
-    @strip_key
     def create_item(self, user_id, course_key, block_type, block_id=None, fields=None, **kwargs):
         """
         Creates and saves a new item in a course.
@@ -422,7 +349,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         modulestore = self._verify_modulestore_support(course_key, 'create_item')
         return modulestore.create_item(user_id, course_key, block_type, block_id=block_id, fields=fields, **kwargs)
 
-    @strip_key
     def create_child(self, user_id, parent_usage_key, block_type, block_id=None, fields=None, **kwargs):
         """
         Creates and saves a new xblock that is a child of the specified block
@@ -442,7 +368,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         modulestore = self._verify_modulestore_support(parent_usage_key.course_key, 'create_child')
         return modulestore.create_child(user_id, parent_usage_key, block_type, block_id=block_id, fields=fields, **kwargs)
 
-    @strip_key
     def import_xblock(self, user_id, course_key, block_type, block_id, fields=None, runtime=None, **kwargs):
         """
         See :py:meth `ModuleStoreDraftAndPublished.import_xblock`
@@ -452,7 +377,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._verify_modulestore_support(course_key, 'import_xblock')
         return store.import_xblock(user_id, course_key, block_type, block_id, fields, runtime)
 
-    @strip_key
     def update_item(self, xblock, user_id, allow_not_found=False, **kwargs):
         """
         Update the xblock persisted to be the same as the given for all types of fields
@@ -461,7 +385,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._verify_modulestore_support(xblock.location.course_key, 'update_item')
         return store.update_item(xblock, user_id, allow_not_found, **kwargs)
 
-    @strip_key
     def delete_item(self, location, user_id, **kwargs):
         """
         Delete the given item from persistence. kwargs allow modulestore specific parameters.
@@ -499,7 +422,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
             if hasattr(modulestore, '_drop_database'):
                 modulestore._drop_database()  # pylint: disable=protected-access
 
-    @strip_key
     def create_xblock(self, runtime, course_key, block_type, block_id=None, fields=None, **kwargs):
         """
         Create the new xmodule but don't save it. Returns the new module.
@@ -516,7 +438,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._verify_modulestore_support(course_key, 'create_xblock')
         return store.create_xblock(runtime, course_key, block_type, block_id, fields or {}, **kwargs)
 
-    @strip_key
     def get_courses_for_wiki(self, wiki_slug, **kwargs):
         """
         Return the list of courses which use this wiki_slug
@@ -554,7 +475,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._get_modulestore_for_courseid(course_id)
         return store.has_published_version(xblock)
 
-    @strip_key
     def publish(self, location, user_id, **kwargs):
         """
         Save a current draft to the underlying modulestore
@@ -563,7 +483,6 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         store = self._verify_modulestore_support(location.course_key, 'publish')
         return store.publish(location, user_id, **kwargs)
 
-    @strip_key
     def unpublish(self, location, user_id, **kwargs):
         """
         Save a current draft to the underlying modulestore
@@ -664,3 +583,12 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         """
         for store in self.modulestores:
             store.ensure_indexes()
+
+    @contextmanager
+    def version_aware(self, aware=True):
+        """
+        Specify that the calling code wants or doesn't want key formats that support
+        versioning when querying the modulestore within the surrounded context.
+        """
+        with nested(store.version_aware(aware) for store in self.modulestores):
+            yield

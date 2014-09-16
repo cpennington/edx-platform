@@ -152,78 +152,80 @@ class TemplateTests(unittest.TestCase):
         self.assertEqual(persisted_problem.display_name, 'altered problem')
 
     def test_delete_course(self):
-        test_course = persistent_factories.PersistentCourseFactory.create(
-            course='history', run='doomed', org='edu.harvard',
-            display_name='doomed test course',
-            user_id='testbot')
-        persistent_factories.ItemFactory.create(display_name='chapter 1',
-            parent_location=test_course.location)
+        with self.split_store.version_aware(True):
+            test_course = persistent_factories.PersistentCourseFactory.create(
+                course='history', run='doomed', org='edu.harvard',
+                display_name='doomed test course',
+                user_id='testbot')
+            persistent_factories.ItemFactory.create(display_name='chapter 1',
+                parent_location=test_course.location)
 
-        id_locator = test_course.id.for_branch(ModuleStoreEnum.BranchName.draft)
-        guid_locator = test_course.location.course_agnostic()
-        # verify it can be retrieved by id
-        self.assertIsInstance(self.split_store.get_course(id_locator), CourseDescriptor)
-        # and by guid -- TODO reenable when split_draft supports getting specific versions
-#         self.assertIsInstance(self.split_store.get_item(guid_locator), CourseDescriptor)
-        self.split_store.delete_course(id_locator, 'testbot')
-        # test can no longer retrieve by id
-        self.assertRaises(ItemNotFoundError, self.split_store.get_course, id_locator)
-        # but can by guid -- same TODO as above
-#         self.assertIsInstance(self.split_store.get_item(guid_locator), CourseDescriptor)
+            id_locator = test_course.id.for_branch(ModuleStoreEnum.BranchName.draft)
+            guid_locator = test_course.location.course_agnostic()
+            # verify it can be retrieved by id
+            self.assertIsInstance(self.split_store.get_course(id_locator), CourseDescriptor)
+            # and by guid -- TODO reenable when split_draft supports getting specific versions
+    #         self.assertIsInstance(self.split_store.get_item(guid_locator), CourseDescriptor)
+            self.split_store.delete_course(id_locator, 'testbot')
+            # test can no longer retrieve by id
+            self.assertRaises(ItemNotFoundError, self.split_store.get_course, id_locator)
+            # but can by guid -- same TODO as above
+    #         self.assertIsInstance(self.split_store.get_item(guid_locator), CourseDescriptor)
 
     def test_block_generations(self):
         """
         Test get_block_generations
         """
-        test_course = persistent_factories.PersistentCourseFactory.create(
-            course='history', run='hist101', org='edu.harvard',
-            display_name='history test course',
-            user_id='testbot'
-        )
-        chapter = persistent_factories.ItemFactory.create(display_name='chapter 1',
-            parent_location=test_course.location, user_id='testbot')
-        sub = persistent_factories.ItemFactory.create(display_name='subsection 1',
-            parent_location=chapter.location, user_id='testbot', category='vertical')
-        first_problem = persistent_factories.ItemFactory.create(
-            display_name='problem 1', parent_location=sub.location, user_id='testbot', category='problem',
-            data="<problem></problem>"
-        )
-        first_problem.max_attempts = 3
-        first_problem.save()  # decache the above into the kvs
-        updated_problem = self.split_store.update_item(first_problem, 'testbot')
-        self.assertIsNotNone(updated_problem.previous_version)
-        self.assertEqual(updated_problem.previous_version, first_problem.update_version)
-        self.assertNotEqual(updated_problem.update_version, first_problem.update_version)
-        self.split_store.delete_item(updated_problem.location, 'testbot')
+        with self.split_store.version_aware(True):
+            test_course = persistent_factories.PersistentCourseFactory.create(
+                course='history', run='hist101', org='edu.harvard',
+                display_name='history test course',
+                user_id='testbot'
+            )
+            chapter = persistent_factories.ItemFactory.create(display_name='chapter 1',
+                parent_location=test_course.location, user_id='testbot')
+            sub = persistent_factories.ItemFactory.create(display_name='subsection 1',
+                parent_location=chapter.location, user_id='testbot', category='vertical')
+            first_problem = persistent_factories.ItemFactory.create(
+                display_name='problem 1', parent_location=sub.location, user_id='testbot', category='problem',
+                data="<problem></problem>"
+            )
+            first_problem.max_attempts = 3
+            first_problem.save()  # decache the above into the kvs
+            updated_problem = self.split_store.update_item(first_problem, 'testbot')
+            self.assertIsNotNone(updated_problem.previous_version)
+            self.assertEqual(updated_problem.previous_version, first_problem.update_version)
+            self.assertNotEqual(updated_problem.update_version, first_problem.update_version)
+            self.split_store.delete_item(updated_problem.location, 'testbot')
 
-        second_problem = persistent_factories.ItemFactory.create(
-            display_name='problem 2',
-            parent_location=sub.location.version_agnostic(),
-            user_id='testbot', category='problem',
-            data="<problem></problem>"
-        )
+            second_problem = persistent_factories.ItemFactory.create(
+                display_name='problem 2',
+                parent_location=sub.location.version_agnostic(),
+                user_id='testbot', category='problem',
+                data="<problem></problem>"
+            )
 
-        # The draft course root has 2 revisions: the published revision, and then the subsequent
-        # changes to the draft revision
-        version_history = self.split_store.get_block_generations(test_course.location)
-        self.assertIsNotNone(version_history)
-        self.assertEqual(version_history.locator.version_guid, test_course.location.version_guid)
-        self.assertEqual(len(version_history.children), 1)
-        self.assertEqual(version_history.children[0].children, [])
-        self.assertEqual(version_history.children[0].locator.version_guid, chapter.location.version_guid)
+            # The draft course root has 2 revisions: the published revision, and then the subsequent
+            # changes to the draft revision
+            version_history = self.split_store.get_block_generations(test_course.location)
+            self.assertIsNotNone(version_history)
+            self.assertEqual(version_history.locator.version_guid, test_course.location.version_guid)
+            self.assertEqual(len(version_history.children), 1)
+            self.assertEqual(version_history.children[0].children, [])
+            self.assertEqual(version_history.children[0].locator.version_guid, chapter.location.version_guid)
 
-        # sub changed on add, add problem, delete problem, add problem in strict linear seq
-        version_history = self.split_store.get_block_generations(sub.location)
-        self.assertEqual(len(version_history.children), 1)
-        self.assertEqual(len(version_history.children[0].children), 1)
-        self.assertEqual(len(version_history.children[0].children[0].children), 1)
-        self.assertEqual(len(version_history.children[0].children[0].children[0].children), 0)
+            # sub changed on add, add problem, delete problem, add problem in strict linear seq
+            version_history = self.split_store.get_block_generations(sub.location)
+            self.assertEqual(len(version_history.children), 1)
+            self.assertEqual(len(version_history.children[0].children), 1)
+            self.assertEqual(len(version_history.children[0].children[0].children), 1)
+            self.assertEqual(len(version_history.children[0].children[0].children[0].children), 0)
 
-        # first and second problem may show as same usage_id; so, need to ensure their histories are right
-        version_history = self.split_store.get_block_generations(updated_problem.location)
-        self.assertEqual(version_history.locator.version_guid, first_problem.location.version_guid)
-        self.assertEqual(len(version_history.children), 1)  # updated max_attempts
-        self.assertEqual(len(version_history.children[0].children), 0)
+            # first and second problem may show as same usage_id; so, need to ensure their histories are right
+            version_history = self.split_store.get_block_generations(updated_problem.location)
+            self.assertEqual(version_history.locator.version_guid, first_problem.location.version_guid)
+            self.assertEqual(len(version_history.children), 1)  # updated max_attempts
+            self.assertEqual(len(version_history.children[0].children), 0)
 
-        version_history = self.split_store.get_block_generations(second_problem.location)
-        self.assertNotEqual(version_history.locator.version_guid, first_problem.location.version_guid)
+            version_history = self.split_store.get_block_generations(second_problem.location)
+            self.assertNotEqual(version_history.locator.version_guid, first_problem.location.version_guid)

@@ -162,8 +162,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
         if definition_id is None:
             definition_id = LocalId()
 
-        block_locator = BlockUsageLocator(
-            course_key,
+        block_locator = course_key.make_usage_key(
             block_type=block_key.type,
             block_id=block_key.id,
         )
