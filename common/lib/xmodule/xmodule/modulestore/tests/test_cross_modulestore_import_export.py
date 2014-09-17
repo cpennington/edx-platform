@@ -28,6 +28,8 @@ from xmodule.modulestore.xml_importer import import_from_xml
 from xmodule.modulestore.xml_exporter import export_to_xml
 from xmodule.modulestore.split_mongo.split_draft import DraftVersioningModuleStore
 from xmodule.modulestore.tests.mongo_connection import MONGO_PORT_NUM, MONGO_HOST
+from xmodule.modulestore.inheritance import InheritanceMixin
+from xmodule.x_module import XModuleMixin
 
 
 COMMON_DOCSTORE_CONFIG = {
@@ -95,6 +97,7 @@ class MongoModulestoreBuilder(object):
             render_template=repr,
             branch_setting_func=lambda: ModuleStoreEnum.Branch.draft_preferred,
             metadata_inheritance_cache_subsystem=MemoryCache(),
+            xblock_mixins=(InheritanceMixin, XModuleMixin),
         )
         modulestore.ensure_indexes()
 
@@ -139,6 +142,7 @@ class VersioningModulestoreBuilder(object):
             doc_store_config,
             fs_root,
             render_template=repr,
+            xblock_mixins=(InheritanceMixin, XModuleMixin),
         )
         modulestore.ensure_indexes()
 
