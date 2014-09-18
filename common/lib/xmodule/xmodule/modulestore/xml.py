@@ -778,7 +778,7 @@ class XMLModuleStore(ModuleStoreReadBase):
 
         This key may represent a course that doesn't exist in this modulestore.
         """
-        return CourseLocator(org, course, run, deprecated=True)
+        return CourseLocator(org, course, run, deprecated=True, version_agnostic=not self.is_version_aware)
 
     def get_courses(self, depth=0, **kwargs):
         """

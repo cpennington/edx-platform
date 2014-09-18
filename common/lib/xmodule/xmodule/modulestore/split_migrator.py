@@ -59,17 +59,19 @@ class SplitMigrator(object):
             new_fields = self._get_fields_translate_references(original_course, new_course_key, None)
             if fields:
                 new_fields.update(fields)
-            new_course = self.split_modulestore.create_course(
-                new_org, new_course, new_run, user_id,
-                fields=new_fields,
-                master_branch=ModuleStoreEnum.BranchName.published,
-                skip_auto_publish=True,
-                **kwargs
-            )
 
-            self._copy_published_modules_to_course(
-                new_course, original_course.location, source_course_key, user_id, **kwargs
-            )
+            with self.split_modulestore.branch_setting(ModuleStoreEnum.Branch.published_only):
+                new_course = self.split_modulestore.create_course(
+                    new_org, new_course, new_run, user_id,
+                    fields=new_fields,
+                    master_branch=ModuleStoreEnum.BranchName.published,
+                    skip_auto_publish=True,
+                    **kwargs
+                )
+
+                self._copy_published_modules_to_course(
+                    new_course, original_course.location, source_course_key, user_id, **kwargs
+                )
 
         # TODO: This should be merged back into the above transaction, but can't be until split.py
         # is refactored to have more coherent access patterns

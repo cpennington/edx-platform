@@ -140,7 +140,7 @@ class CourseTestCase(ModuleStoreTestCase):
         """
         content_store = contentstore()
         import_from_xml(self.store, self.user.id, 'common/test/data/', ['toy'], static_content_store=content_store)
-        course_id = SlashSeparatedCourseKey('edX', 'toy', '2012_Fall')
+        course_id = self.store.make_course_key('edX', 'toy', '2012_Fall')
 
         # create an Orphan
         # We had a bug where orphaned draft nodes caused export to fail. This is here to cover that case.

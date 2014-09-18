@@ -500,6 +500,17 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         connection.drop_database(self.collection.database)
         connection.close()
 
+    def _from_deprecated_son(self, course_key, son):
+        return course_key.replace(
+            org=son['org'],
+            course=son['course'],
+            branch=son['revision'],
+            deprecated=True
+        ).make_usage_key(
+            block_type=son['category'],
+            block_id=son['name']
+        )
+
     def fill_in_run(self, course_key):
         """
         In mongo some course_keys are used without runs. This helper function returns
@@ -568,7 +579,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         # now go through the results and order them by the location url
         for result in resultset:
             # manually pick it apart b/c the db has tag and we want as_published revision regardless
-            location = as_published(Location._from_deprecated_son(result['_id'], course_id.run))
+            location = as_published(self._from_deprecated_son(course_id, result['_id']))
 
             location_url = unicode(location)
             if location_url in results_by_url:
@@ -702,7 +713,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             for item in to_process:
                 self._clean_item_data(item)
                 children.extend(item.get('definition', {}).get('children', []))
-                data[Location._from_deprecated_son(item['location'], course_key.run)] = item
+                data[self._from_deprecated_son(course_key, item['location'])] = item
 
             if depth == 0:
                 break
@@ -725,7 +736,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         Load an XModuleDescriptor from item, using the children stored in data_cache
         """
         course_key = self.fill_in_run(course_key)
-        location = Location._from_deprecated_son(item['location'], course_key.run)
+        location = self._from_deprecated_son(course_key, item['location'])
         data_dir = getattr(item, 'data_dir', location.course)
         root = self.fs_root / data_dir
 
@@ -819,7 +830,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
 
         This key may represent a course that doesn't exist in this modulestore.
         """
-        return CourseLocator(org, course, run, deprecated=True)
+        return CourseLocator(org, course, run, deprecated=True, version_agnostic=not self.is_version_aware)
 
     def get_course(self, course_key, depth=0, **kwargs):
         """
@@ -1266,7 +1277,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         bulk_record = self._get_bulk_ops_record(location.course_key)
 
         for parent in parents:
-            parent_loc = Location._from_deprecated_son(parent['_id'], location.course_key.run)
+            parent_loc = self._from_deprecated_son(location.course_key, parent['_id'])
 
             # travel up the tree for orphan validation
             ancestor_loc = parent_loc
@@ -1332,7 +1343,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
                     return non_orphan_parents[0]
             else:
                 # return the single PUBLISHED parent
-                return Location._from_deprecated_son(parents[0]['_id'], location.course_key.run)
+                return self._from_deprecated_son(location.course_key.run, parents[0]['_id'])
         else:
             # there could be 2 different parents if
             #   (1) the draft item was moved or
@@ -1352,7 +1363,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
 
             found_id = all_parents[0]['_id']
             # don't disclose revision outside modulestore
-            return Location._from_deprecated_son(found_id, location.course_key.run)
+            return self._from_deprecated_son(location.course_key, found_id)
 
     def get_parent_location(self, location, revision=ModuleStoreEnum.RevisionOption.published_only, **kwargs):
         '''
@@ -1397,7 +1408,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             if item['_id']['category'] != 'course':
                 # It would be nice to change this method to return UsageKeys instead of the deprecated string.
                 item_locs.add(
-                    unicode(as_published(Location._from_deprecated_son(item['_id'], course_key.run)))
+                    unicode(as_published(self._from_deprecated_son(course_key, item['_id'])))
                 )
             all_reachable = all_reachable.union(item.get('definition', {}).get('children', []))
         item_locs -= all_reachable
@@ -1415,7 +1426,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         )
         # the course's run == its name. It's the only xblock for which that's necessarily true.
         return [
-            Location._from_deprecated_son(course['_id'], course['_id']['name']).course_key
+            self.make_course_key(course['_id']['org'], course['_id']['course'], course['_id']['name'])
             for course in courses
         ]
 

@@ -33,7 +33,7 @@ class CloneCourseTest(CourseTestCase):
 
         # 3. clone course (mongo -> split)
         with self.store.default_store(ModuleStoreEnum.Type.split):
-            split_course3_id = CourseLocator(
+            split_course3_id = self.store.make_course_key(
                 org="edx3", course="split3", run="2013_Fall"
             )
             self.store.clone_course(mongo_course2_id, split_course3_id, self.user.id)

@@ -31,8 +31,7 @@ def wrap_draft(item):
     Sets `item.is_draft` to `True` if the item is DRAFT, and `False` otherwise.
     Sets the item's location to the non-draft location in either case.
     """
-    setattr(item, 'is_draft', item.location.revision == MongoRevisionKey.draft)
-    item.location = item.location.replace(revision=MongoRevisionKey.published)
+    setattr(item, 'is_draft', item.location._branch == MongoRevisionKey.draft)
     return item
 
 
@@ -254,7 +253,7 @@ class DraftModuleStore(MongoModuleStore):
 
         # return only the parent(s) that satisfy the request
         return [
-            Location._from_deprecated_son(parent['_id'], location.course_key.run)
+            self._from_deprecated_son(location.course_key, parent['_id'])
             for parent in parents
             if (
                 # return all versions of the parent if revision is ModuleStoreEnum.RevisionOption.all
@@ -751,7 +750,7 @@ class DraftModuleStore(MongoModuleStore):
 
         to_process_dict = {}
         for non_draft in to_process_non_drafts:
-            to_process_dict[Location._from_deprecated_son(non_draft["_id"], course_key.run)] = non_draft
+            to_process_dict[self._from_deprecated_son(course_key, non_draft["_id"])] = non_draft
 
         if self.get_branch_setting() == ModuleStoreEnum.Branch.draft_preferred:
             # now query all draft content in another round-trip
@@ -768,7 +767,7 @@ class DraftModuleStore(MongoModuleStore):
                 # with the draft. This is because the semantics of the DraftStore is to
                 # always return the draft - if available
                 for draft in to_process_drafts:
-                    draft_loc = Location._from_deprecated_son(draft["_id"], course_key.run)
+                    draft_loc = self._from_deprecated_son(course_key, draft["_id"])
                     draft_as_non_draft_loc = as_published(draft_loc)
 
                     # does non-draft exist in the collection
