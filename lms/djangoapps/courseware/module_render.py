@@ -60,7 +60,14 @@ from openedx.core.lib.xblock_utils import (
 from psychometrics.psychoanalyze import make_psychometrics_data_update_handler
 from student.models import anonymous_id_for_user, user_by_anonymous_id
 from student.roles import CourseBetaTesterRole
+<<<<<<< HEAD
 from xblock.core import XBlock
+=======
+from xblock.core import XBlock, XBlockAside
+from xblock.fields import Scope
+from xblock.runtime import KvsFieldData, KeyValueStore
+from xblock.exceptions import NoSuchHandlerError, NoSuchViewError
+>>>>>>> Enable XBlockAside Handlers in the LMS, with associated tests
 from xblock.django.request import django_to_webob_request, webob_to_django_response
 from xblock_django.user_service import DjangoXBlockUserService
 from xblock.exceptions import NoSuchHandlerError, NoSuchViewError
@@ -69,6 +76,12 @@ from xblock.runtime import KvsFieldData
 from xmodule.contentstore.django import contentstore
 from xmodule.error_module import ErrorDescriptor, NonStaffErrorDescriptor
 from xmodule.exceptions import NotFoundError, ProcessingError
+<<<<<<< HEAD
+=======
+from opaque_keys.edx.keys import CourseKey, AsideUsageKey, UsageKey
+from opaque_keys.edx.locations import SlashSeparatedCourseKey
+from xmodule.contentstore.django import contentstore
+>>>>>>> Enable XBlockAside Handlers in the LMS, with associated tests
 from xmodule.modulestore.django import modulestore, ModuleI18nService
 from xmodule.lti_module import LTIModule
 from xmodule.modulestore.exceptions import ItemNotFoundError
@@ -625,8 +638,8 @@ def get_module_system_for_user(user, student_data,  # TODO  # pylint: disable=to
         block_wrappers.append(partial(
             wrap_xblock,
             'LmsRuntime',
-            extra_data={'course-id': course_id.to_deprecated_string()},
-            usage_id_serializer=lambda usage_id: quote_slashes(usage_id.to_deprecated_string()),
+            extra_data={'course-id': unicode(course_id)},
+            usage_id_serializer=lambda usage_id: quote_slashes(unicode(usage_id)),
             request_token=request_token,
         ))
 
@@ -900,7 +913,6 @@ def xqueue_callback(request, course_id, userid, mod_id, dispatch):
 
         return HttpResponse("")
 
-
 @csrf_exempt
 def handle_xblock_callback_noauth(request, course_id, usage_id, handler, suffix=None):
     """
@@ -946,6 +958,7 @@ def handle_xblock_callback(request, course_id, usage_id, handler, suffix=None):
         return _invoke_xblock_handler(request, course_id, usage_id, handler, suffix, course=course)
 
 
+<<<<<<< HEAD
 def xblock_resource(request, block_type, uri):  # pylint: disable=unused-argument
     """
     Return a package resource for the specified XBlock.
@@ -964,6 +977,9 @@ def xblock_resource(request, block_type, uri):  # pylint: disable=unused-argumen
 
 
 def get_module_by_usage_id(request, course_id, usage_id, disable_staff_debug_info=False, course=None):
+=======
+def get_module_by_usage_id(request, course_id, usage_id):
+>>>>>>> Enable XBlockAside Handlers in the LMS, with associated tests
     """
     Gets a module instance based on its `usage_id` in a course, for a given request/user
 
@@ -1093,6 +1109,30 @@ def _invoke_xblock_handler(request, course_id, usage_id, handler, suffix, course
     return webob_to_django_response(resp)
 
 
+def xblock_resource(request, block_family, block_type, uri):  # pylint: disable=unused-argument
+    """
+    Return a package resource for the specified XBlock.
+    """
+    if block_family in ('xblock', XBlock.entry_point, XModuleDescriptor.entry_point):
+        block_family_cls = XBlock
+    elif block_family == XBlockAside.entry_point:
+        block_family_cls = XBlockAside
+    else:
+        raise Http404("{!r} is an invalid block family")
+
+    try:
+        xblock_class = block_family_cls.load_class(block_type, select=settings.XBLOCK_SELECT_FUNCTION)
+        content = xblock_class.open_local_resource(uri)
+    except IOError:
+        log.info('Failed to load xblock resource', exc_info=True)
+        raise Http404
+    except Exception:  # pylint: disable=broad-except
+        log.error('Failed to load xblock resource', exc_info=True)
+        raise Http404
+    mimetype, _ = mimetypes.guess_type(uri)
+    return HttpResponse(content, mimetype=mimetype)
+
+
 def hash_resource(resource):
     """
     Hash a :class:`xblock.fragment.FragmentResource
@@ -1158,6 +1198,7 @@ def get_score_bucket(grade, max_grade):
         score_bucket = "correct"
 
     return score_bucket
+<<<<<<< HEAD
 
 
 def _check_files_limits(files):
@@ -1204,3 +1245,5 @@ def append_data_to_webob_response(response, data):
         response_data.update(data)
         response.body = json.dumps(response_data)
     return response
+=======
+>>>>>>> Enable XBlockAside Handlers in the LMS, with associated tests

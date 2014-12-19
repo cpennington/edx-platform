@@ -853,7 +853,28 @@ class FieldDataCache(object):
             if key.scope not in self.cache:
                 continue
 
+<<<<<<< HEAD
             by_scope[key.scope][key] = value
+=======
+    def _fields_to_cache(self, descriptors):
+        """
+        Returns a map of scopes to fields in that scope that should be cached
+        """
+        if not self.descriptors:
+            return {}
+
+        scope_map = defaultdict(set)
+        block_classes = set(descriptor.__class__ for descriptor in self.descriptors)
+        block_classes.update(
+            self.descriptors[0].runtime.load_aside_type(aside_type)
+            for aside_type
+            in self.asides
+        )
+        for block_class in block_classes:
+            for field in block_class.fields.values():
+                scope_map[field.scope].add(field)
+        return scope_map
+>>>>>>> Enable XBlockAside Handlers in the LMS, with associated tests
 
         for scope, set_many_data in by_scope.iteritems():
             try:

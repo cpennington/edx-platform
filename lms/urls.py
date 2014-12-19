@@ -11,6 +11,9 @@ import django.contrib.auth.views
 from microsite_configuration import microsite
 import auth_exchange.views
 
+from config_models.views import ConfigurationModelCurrentAPIView
+from lms_xblock.models import XBlockAsidesConfig
+
 # Uncomment the next two lines to enable the admin:
 if settings.DEBUG or settings.FEATURES.get('ENABLE_DJANGO_ADMIN_SITE'):
     admin.autodiscover()
@@ -254,6 +257,7 @@ if settings.COURSEWARE_ENABLED:
         )
     )
     urlpatterns += (
+<<<<<<< HEAD
         # jump_to URLs for direct access to a location in the course
         url(
             r'^courses/{}/jump_to/(?P<location>.*)$'.format(settings.COURSE_ID_PATTERN),
@@ -307,6 +311,27 @@ if settings.COURSEWARE_ENABLED:
         # xblock Resource URL
         url(
             r'xblock/resource/(?P<block_type>[^/]+)/(?P<uri>.*)$',
+=======
+        url(r'^courses/{}/jump_to/(?P<location>.*)$'.format(settings.COURSE_ID_PATTERN),
+            'courseware.views.jump_to', name="jump_to"),
+        url(r'^courses/{}/jump_to_id/(?P<module_id>.*)$'.format(settings.COURSE_ID_PATTERN),
+            'courseware.views.jump_to_id', name="jump_to_id"),
+        url(r'^courses/{course_key}/(?P<block_family>[^/]*)/{usage_key}/handler/(?P<handler>[^/]*)(?:/(?P<suffix>.*))?$'.format(course_key=settings.COURSE_ID_PATTERN, usage_key=settings.USAGE_ID_PATTERN),
+            'courseware.module_render.handle_xblock_callback',
+            name='xblock_handler'),
+        url(r'^courses/{course_key}/xblock/{usage_key}/view/(?P<view_name>[^/]*)$'.format(
+            course_key=settings.COURSE_ID_PATTERN,
+            usage_key=settings.USAGE_ID_PATTERN),
+            'courseware.module_render.xblock_view',
+            name='xblock_view'),
+        url(r'^courses/{course_key}/(?P<block_family>[^/]*)/{usage_key}/handler_noauth/(?P<handler>[^/]*)(?:/(?P<suffix>.*))?$'.format(
+                course_key=settings.COURSE_ID_PATTERN,
+                usage_key=settings.USAGE_ID_PATTERN
+            ),
+            'courseware.module_render.handle_xblock_callback_noauth',
+            name='xblock_handler_noauth'),
+        url(r'xblock/resource/(?P<block_family>[^/]+)/(?P<block_type>[^/]+)/(?P<uri>.*)$',
+>>>>>>> Enable XBlockAside Handlers in the LMS, with associated tests
             'courseware.module_render.xblock_resource',
             name='xblock_resource_url',
         ),
@@ -738,6 +763,10 @@ if settings.FEATURES.get("ENABLE_LTI_PROVIDER"):
     urlpatterns += (
         url(r'^lti_provider/', include('lti_provider.urls')),
     )
+
+urlpatterns += (
+    url(r'config/xblock/asides', ConfigurationModelCurrentAPIView.as_view(model=XBlockAsidesConfig)),
+)
 
 urlpatterns = patterns(*urlpatterns)
 

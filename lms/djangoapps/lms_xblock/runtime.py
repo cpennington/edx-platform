@@ -91,6 +91,7 @@ class LmsHandlerUrls(object):
 
         url = reverse(view_name, kwargs={
             'course_id': unicode(self.course_id),
+            'block_family': block.entry_point,
             'usage_id': quote_slashes(unicode(block.scope_ids.usage_id).encode('utf-8')),
             'handler': handler_name,
             'suffix': suffix,
@@ -121,6 +122,7 @@ class LmsHandlerUrls(object):
         """
         path = reverse('xblock_resource_url', kwargs={
             'block_type': block.scope_ids.block_type,
+            'block_family': block.entry_point,
             'uri': uri,
         })
         return '//{}{}'.format(settings.SITE_NAME, path)
@@ -220,8 +222,11 @@ class LmsModuleSystem(LmsHandlerUrls, ModuleSystem):  # pylint: disable=abstract
         """
         extra_data = {
             'block-id': quote_slashes(unicode(block.scope_ids.usage_id)),
+            'usage-id': quote_slashes(unicode(aside.scope_ids.usage_id)),
             'url-selector': 'asideBaseUrl',
             'runtime-class': 'LmsRuntime',
+            'course-id': unicode(block.scope_ids.usage_id.course_key),
+            'block-family': aside.entry_point,
         }
         if self.request_token:
             extra_data['request-token'] = self.request_token
@@ -249,4 +254,4 @@ class LmsModuleSystem(LmsHandlerUrls, ModuleSystem):  # pylint: disable=abstract
         if block.scope_ids.block_type in config.disabled_blocks.split():
             return []
 
-        return super(LmsModuleSystem, self).applicable_aside_types()
+        return super(LmsModuleSystem, self).applicable_aside_types(self)
