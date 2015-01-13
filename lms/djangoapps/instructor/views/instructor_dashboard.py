@@ -47,6 +47,9 @@ log = logging.getLogger(__name__)
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 def instructor_dashboard_2(request, course_id):
     """ Display the instructor dashboard for a course. """
+    if not request.is_sudo(course_id):
+        return redirect_to_sudo(request.get_full_path(), region=course_id)
+
     course_key = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     course = get_course_by_id(course_key, depth=None)
 
