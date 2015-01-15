@@ -115,10 +115,11 @@ class MongoModulestoreBuilder(object):
             yield modulestore
         finally:
             # Delete the created database
-            modulestore._drop_database()
+            pass
+            #modulestore._drop_database()
 
             # Delete the created directory on the filesystem
-            rmtree(fs_root, ignore_errors=True)
+            #rmtree(fs_root, ignore_errors=True)
 
     def __repr__(self):
         return 'MongoModulestoreBuilder()'
@@ -144,6 +145,7 @@ class VersioningModulestoreBuilder(object):
             collection='split_module',
             **COMMON_DOCSTORE_CONFIG
         )
+        print doc_store_config
         # Set up a temp directory for storing filesystem content created during import
         fs_root = mkdtemp()
 
@@ -160,10 +162,11 @@ class VersioningModulestoreBuilder(object):
             yield modulestore
         finally:
             # Delete the created database
-            modulestore._drop_database()
+            #modulestore._drop_database()
 
             # Delete the created directory on the filesystem
-            rmtree(fs_root, ignore_errors=True)
+            #rmtree(fs_root, ignore_errors=True)
+            pass
 
     def __repr__(self):
         return 'SplitModulestoreBuilder()'
@@ -262,7 +265,8 @@ class MongoContentstoreBuilder(object):
             yield contentstore
         finally:
             # Delete the created database
-            contentstore._drop_database()
+            pass
+            #contentstore._drop_database()
 
     def __repr__(self):
         return 'MongoContentstoreBuilder()'
@@ -272,14 +276,14 @@ MIXED_MODULESTORE_BOTH_SETUP = MixedModulestoreBuilder([
     ('split', VersioningModulestoreBuilder())
 ])
 MIXED_MODULESTORE_SETUPS = (
-    MixedModulestoreBuilder([('draft', MongoModulestoreBuilder())]),
+    #MixedModulestoreBuilder([('draft', MongoModulestoreBuilder())]),
     MixedModulestoreBuilder([('split', VersioningModulestoreBuilder())]),
 )
 MIXED_MS_SETUPS_SHORT = (
     'mixed_mongo', 'mixed_split'
 )
 DIRECT_MODULESTORE_SETUPS = (
-    MongoModulestoreBuilder(),
+    #MongoModulestoreBuilder(),
     # VersioningModulestoreBuilder(),  # FUTUREDO: LMS-11227
 )
 DIRECT_MS_SETUPS_SHORT = (

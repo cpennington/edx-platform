@@ -145,7 +145,7 @@ def generate_random_asset_md():
     return AssetMetadata(
         asset_key,
         pathname=pathname(),
-        internal_name=filename(),
+        internal_name=str([filename() for __ in xrange(10)]),
         locked=locked(),
         contenttype=contenttype(),
         thumbnail=filename(),
