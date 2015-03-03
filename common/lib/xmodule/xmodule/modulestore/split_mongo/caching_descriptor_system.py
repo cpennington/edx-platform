@@ -88,7 +88,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
         return parent_map
 
     @contract(usage_key="BlockUsageLocator | BlockKey", course_entry_override="CourseEnvelope | None")
-    def _load_item(self, usage_key, course_entry_override=None, **kwargs):
+    def _load_item(self, usage_key, course_entry_override=None, for_parent=None, **kwargs):
         """
         Instantiate the xblock fetching it either from the cache or from the structure
 
@@ -124,7 +124,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
         block_data = self.get_module_data(block_key, course_key)
 
         class_ = self.load_block_type(block_data.block_type)
-        block = self.xblock_from_json(class_, course_key, block_key, block_data, course_entry_override, **kwargs)
+        block = self.xblock_from_json(class_, course_key, block_key, block_data, course_entry_override, for_parent=None, **kwargs)
         self.modulestore.cache_block(course_key, version_guid, block_key, block)
         return block
 
@@ -158,7 +158,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
     # pointing to the same structure, the access is likely to be chunky enough that the last known container
     # is the intended one when not given a course_entry_override; thus, the caching of the last branch/course id.
     @contract(block_key="BlockKey | None")
-    def xblock_from_json(self, class_, course_key, block_key, block_data, course_entry_override=None, **kwargs):
+    def xblock_from_json(self, class_, course_key, block_key, block_data, course_entry_override=None, for_parent=None, **kwargs):
         """
         Load and return block info.
         """
@@ -236,6 +236,10 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
                 ),
                 error_msg=exc_info_to_str(sys.exc_info())
             )
+
+        if for_parent is not None:
+            module._parent_block = for_parent
+            module._parent_block_id = for_parent.scope_ids.usage_id
 
         edit_info = block_data.edit_info
         module._edited_by = edit_info.edited_by  # pylint: disable=protected-access

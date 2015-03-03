@@ -211,14 +211,14 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
         self.course_id = course_key
         self.cached_metadata = cached_metadata
 
-    def load_item(self, location):
+    def load_item(self, location, for_parent=None):
         """
         Return an XModule instance for the specified location
         """
         assert isinstance(location, UsageKey)
         json_data = self.module_data.get(location)
         if json_data is None:
-            module = self.modulestore.get_item(location, using_descriptor_system=self)
+            module = self.modulestore.get_item(location, using_descriptor_system=self, for_parent=for_parent)
             return module
         else:
             # load the module and apply the inherited metadata
@@ -273,6 +273,11 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
                 field_data = KvsFieldData(kvs)
                 scope_ids = ScopeIds(None, category, location, location)
                 module = self.construct_xblock_from_class(class_, scope_ids, field_data)
+
+                if for_parent is not None:
+                    module._parent_block = for_parent
+                    module._parent_block_id = for_parent.scope_ids.usage_id
+
                 if self.cached_metadata is not None:
                     # parent container pointers don't differentiate between draft and non-draft
                     # so when we do the lookup, we should do so with a non-draft location
@@ -852,7 +857,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
 
         return data
 
-    def _load_item(self, course_key, item, data_cache, apply_cached_metadata=True, using_descriptor_system=None):
+    def _load_item(self, course_key, item, data_cache, apply_cached_metadata=True, using_descriptor_system=None, for_parent=None):
         """
         Load an XModuleDescriptor from item, using the children stored in data_cache
 
@@ -905,9 +910,9 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             system.module_data.update(data_cache)
             system.cached_metadata.update(cached_metadata)
 
-        return system.load_item(location)
+        return system.load_item(location, for_parent=for_parent)
 
-    def _load_items(self, course_key, items, depth=0, using_descriptor_system=None):
+    def _load_items(self, course_key, items, depth=0, using_descriptor_system=None, for_parent=None):
         """
         Load a list of xmodules from the data in items, with children cached up
         to specified depth
@@ -920,7 +925,8 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         return [
             self._load_item(
                 course_key, item, data_cache,
-                apply_cached_metadata=(item['location']['category'] != 'course' or depth != 0)
+                apply_cached_metadata=(item['location']['category'] != 'course' or depth != 0),
+                for_parent=for_parent
             )
             for item in items
         ]
@@ -1019,7 +1025,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         except ItemNotFoundError:
             return False
 
-    def get_item(self, usage_key, depth=0, using_descriptor_system=None):
+    def get_item(self, usage_key, depth=0, using_descriptor_system=None, for_parent=None):
         """
         Returns an XModuleDescriptor instance for the item at location.
 
@@ -1042,7 +1048,8 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             usage_key.course_key,
             [item],
             depth,
-            using_descriptor_system=using_descriptor_system
+            using_descriptor_system=using_descriptor_system,
+            for_parent=for_parent
         )[0]
         return module
 

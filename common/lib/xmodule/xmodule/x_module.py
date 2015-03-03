@@ -419,7 +419,7 @@ class XModuleMixin(XBlockMixin):
                 if not usage_key_filter(child_loc):
                     continue
                 try:
-                    child = self.runtime.get_block(child_loc)
+                    child = self.runtime.get_block(child_loc, for_parent=self)
                     if child is None:
                         continue
 
@@ -1234,9 +1234,9 @@ class DescriptorSystem(MetricsMixin, ConfigurableFragmentWrapper, Runtime):  # p
         else:
             self.get_policy = lambda u: {}
 
-    def get_block(self, usage_id):
+    def get_block(self, usage_id, for_parent=None):
         """See documentation for `xblock.runtime:Runtime.get_block`"""
-        return self.load_item(usage_id)
+        return self.load_item(usage_id, for_parent=for_parent)
 
     def get_field_provenance(self, xblock, field):
         """
@@ -1570,8 +1570,8 @@ class ModuleSystem(MetricsMixin, ConfigurableFragmentWrapper, Runtime):  # pylin
         assert self.xmodule_instance is not None
         return self.handler_url(self.xmodule_instance, 'xmodule_handler', '', '').rstrip('/?')
 
-    def get_block(self, block_id):
-        return self.get_module(self.descriptor_runtime.get_block(block_id))
+    def get_block(self, block_id, for_parent=None):
+        return self.get_module(self.descriptor_runtime.get_block(block_id, for_parent=for_parent))
 
     def resource_url(self, resource):
         raise NotImplementedError("edX Platform doesn't currently implement XBlock resource urls")
