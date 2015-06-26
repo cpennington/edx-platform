@@ -93,6 +93,26 @@ template_imports = {'urllib': urllib}
 
 CONTENT_DEPTH = 2
 
+from django.views.generic import View
+
+
+class CourseView(View):
+
+    depth = 0
+
+    def dispatch(self, *args, **kwargs):
+        course_key_string = kwargs.pop('course_key')
+
+        try:
+            course_key = CourseKey.from_string(course_key_string)
+        except InvalidKeyError:
+            raise Http404
+
+        with modulestore().bulk_operations(course_key):
+            course = modulestore().get_course(course_key, depth=self.depth)
+            kwargs['course'] = course
+            return super(CourseView, self).dispatch(*args, **kwargs)
+
 
 def user_groups(user):
     """
