@@ -22,13 +22,13 @@ def view_course_multiple_sections(step):
     )
 
     place1 = world.ItemFactory.create(
-        parent_location=section1.location,
+        parent=section1,
         category='sequential',
         display_name="Test Subsection 1"
     )
 
     place2 = world.ItemFactory.create(
-        parent_location=section2.location,
+        parent=section2,
         category='sequential',
         display_name="Test Subsection 2"
     )
@@ -49,13 +49,13 @@ def view_course_multiple_subsections(step):
     )
 
     place1 = world.ItemFactory.create(
-        parent_location=section1.location,
+        parent=section1,
         category='sequential',
         display_name="Test Subsection 1"
     )
 
     place2 = world.ItemFactory.create(
-        parent_location=section1.location,
+        parent=section1,
         display_name="Test Subsection 2"
     )
 
@@ -75,7 +75,7 @@ def view_course_multiple_sequences(step):
     )
 
     place1 = world.ItemFactory.create(
-        parent_location=section1.location,
+        parent=section1,
         category='sequential',
         display_name="Test Subsection 1"
     )

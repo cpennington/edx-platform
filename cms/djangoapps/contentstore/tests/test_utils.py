@@ -402,11 +402,11 @@ class GroupVisibilityTest(CourseTestCase):
         super(GroupVisibilityTest, self).setUp()
 
         chapter = ItemFactory.create(category='chapter', parent_location=self.course.location)
-        sequential = ItemFactory.create(category='sequential', parent_location=chapter.location)
-        vertical = ItemFactory.create(category='vertical', parent_location=sequential.location)
-        html = ItemFactory.create(category='html', parent_location=vertical.location)
+        sequential = ItemFactory.create(category='sequential', parent=chapter)
+        vertical = ItemFactory.create(category='vertical', parent=sequential)
+        html = ItemFactory.create(category='html', parent=vertical)
         problem = ItemFactory.create(
-            category='problem', parent_location=vertical.location, data="<problem></problem>"
+            category='problem', parent=vertical, data="<problem></problem>"
         )
         self.sequential = self.store.get_item(sequential.location)
         self.vertical = self.store.get_item(vertical.location)

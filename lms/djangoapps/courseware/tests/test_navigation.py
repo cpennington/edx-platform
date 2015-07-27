@@ -248,7 +248,7 @@ class TestNavigation(ModuleStoreTestCase, LoginEnrollmentTestCase):
         self.assert_request_status_code(200, url)
 
         subsection = ItemFactory.create(
-            parent_location=section.location,
+            parent=section,
             display_name='New Subsection'
         )
         url = reverse(
@@ -258,7 +258,7 @@ class TestNavigation(ModuleStoreTestCase, LoginEnrollmentTestCase):
         self.assert_request_status_code(200, url)
 
         ItemFactory.create(
-            parent_location=subsection.location,
+            parent=subsection,
             display_name='New Unit'
         )
         url = reverse(

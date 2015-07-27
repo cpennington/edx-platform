@@ -202,7 +202,12 @@ class CCXModulestoreWrapper(object):
         """See the docs for xmodule.modulestore.mixed.MixedModuleStore"""
         with remove_ccx(parent_usage_key) as (parent_usage_key, restore):
             return restore(self._modulestore.create_child(
-                user_id, parent_usage_key, block_type, block_id=block_id, fields=fields, **kwargs
+                user_id=user_id,
+                parent_usage_key=parent_usage_key,
+                block_type=block_type,
+                block_id=block_id,
+                fields=fields,
+                **kwargs
             ))
 
     def import_xblock(self, user_id, course_key, block_type, block_id, fields=None, runtime=None, **kwargs):
@@ -240,11 +245,11 @@ class CCXModulestoreWrapper(object):
                 self._modulestore.revert_to_published(location, user_id)
             )
 
-    def create_xblock(self, runtime, course_key, block_type, block_id=None, fields=None, **kwargs):
+    def create_xblock(self, course_key, block_type, block_id=None, fields=None, **kwargs):
         """See the docs for xmodule.modulestore.mixed.MixedModuleStore"""
         with remove_ccx(course_key) as (course_key, restore):
             return restore(self._modulestore.create_xblock(
-                runtime, course_key, block_type, block_id=block_id, fields=fields, **kwargs
+                course_key, block_type, block_id=block_id, fields=fields, **kwargs
             ))
 
     def has_published_version(self, xblock):

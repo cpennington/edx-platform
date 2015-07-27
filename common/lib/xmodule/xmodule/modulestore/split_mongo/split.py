@@ -2736,7 +2736,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
             except KeyError:
                 return course_key.make_usage_key('unknown', block_key.id)
 
-        xblock_class = self.mixologist.mix(xblock_class)
+        xblock_class = self._active_runtime.mixologist.mix(xblock_class)
         # Make a shallow copy, so that we aren't manipulating a cached field dictionary
         output_fields = dict(jsonfields)
         for field_name, value in output_fields.iteritems():
@@ -2838,7 +2838,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         """
         assert isinstance(fields, dict)
         xblock_class = XBlock.load_class(category, self.default_class)
-        xblock_class = self.mixologist.mix(xblock_class)
+        xblock_class = self._active_runtime.mixologist.mix(xblock_class)
 
         def reference_block_id(reference):
             """
@@ -3094,6 +3094,7 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
         Create the proper runtime for this course
         """
         return CachingDescriptorSystem(
+            runtime=self._active_runtime,
             modulestore=self,
             course_entry=course_entry,
             module_data={},
@@ -3101,10 +3102,6 @@ class SplitMongoModuleStore(SplitBulkWriteMixin, ModuleStoreWriteBase):
             default_class=self.default_class,
             error_tracker=self.error_tracker,
             render_template=self.render_template,
-            mixins=self.xblock_mixins,
-            select=self.xblock_select,
-            disabled_xblock_types=self.disabled_xblock_types,
-            services=self.services,
         )
 
     def ensure_indexes(self):

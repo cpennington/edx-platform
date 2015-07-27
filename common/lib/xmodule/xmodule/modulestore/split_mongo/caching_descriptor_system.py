@@ -39,7 +39,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
     Computes the settings (nee 'metadata') inheritance upon creation.
     """
     @contract(course_entry=CourseEnvelope)
-    def __init__(self, modulestore, course_entry, default_class, module_data, lazy, **kwargs):
+    def __init__(self, runtime, modulestore, course_entry, default_class, module_data, lazy, **kwargs):
         """
         Computes the settings inheritance and sets up the cache.
 
@@ -53,6 +53,8 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
         module_data: a dict mapping Location -> json that was cached from the
             underlying modulestore
         """
+        self.runtime = runtime
+
         # needed by capa_problem (as runtime.filestore via this.resources_fs)
         if course_entry.course_key.course:
             root = modulestore.fs_root / course_entry.course_key.org / course_entry.course_key.course / course_entry.course_key.run
@@ -60,12 +62,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
             root = modulestore.fs_root / str(course_entry.structure['_id'])
         root.makedirs_p()  # create directory if it doesn't exist
 
-        id_manager = SplitMongoIdManager(self)
-        kwargs.setdefault('id_reader', id_manager)
-        kwargs.setdefault('id_generator', id_manager)
-
         super(CachingDescriptorSystem, self).__init__(
-            field_data=None,
             load_item=self._load_item,
             resources_fs=OSFS(root),
             **kwargs
@@ -79,7 +76,6 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
         self.module_data = module_data
         self.default_class = default_class
         self.local_modules = {}
-        self._services['library_tools'] = LibraryToolsService(modulestore)
 
     @lazy
     @contract(returns="dict(BlockKey: BlockKey)")
@@ -126,7 +122,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
 
         block_data = self.get_module_data(block_key, course_key)
 
-        class_ = self.load_block_type(block_data.block_type)
+        class_ = self.runtime.load_block_type(block_data.block_type)
         block = self.xblock_from_json(class_, course_key, block_key, block_data, course_entry_override, **kwargs)
         self.modulestore.cache_block(course_key, version_guid, block_key, block)
         return block
@@ -217,13 +213,13 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
             field_decorator=kwargs.get('field_decorator')
         )
 
-        if InheritanceMixin in self.modulestore.xblock_mixins:
+        if InheritanceMixin in self.runtime.mixologist._mixins:
             field_data = inheriting_field_data(kvs)
         else:
             field_data = KvsFieldData(kvs)
 
         try:
-            module = self.construct_xblock_from_class(
+            module = self.runtime.construct_xblock_from_class(
                 class_,
                 ScopeIds(None, block_key.type, definition_id, block_locator),
                 field_data,

@@ -184,10 +184,11 @@ class GroupAccessTestCase(ModuleStoreTestCase):
         """
         DRY helper.
         """
-        self.assertIs(
-            bool(access.has_access(user, 'load', modulestore().get_item(block_location), self.course.id)),
-            is_accessible
-        )
+        with modulestore().xblock_runtime(LmsRuntime(request=None, user=user)):
+            self.assertIs(
+                bool(access.has_access(user, 'load', modulestore().get_item(block_location), self.course.id)),
+                is_accessible
+            )
 
     def ensure_staff_access(self, block_location):
         """

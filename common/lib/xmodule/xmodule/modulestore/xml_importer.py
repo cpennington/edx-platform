@@ -198,8 +198,6 @@ class ImportManager(object):
             default_class=default_class,
             source_dirs=source_dirs,
             load_error_modules=load_error_modules,
-            xblock_mixins=store.xblock_mixins,
-            xblock_select=store.xblock_select,
             target_course_id=target_id,
         )
         self.logger, self.errors = make_error_tracker()

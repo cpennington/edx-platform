@@ -115,7 +115,7 @@ class ErrorDescriptor(ErrorFields, XModuleDescriptor):
             'location': location,
             'category': 'error'
         })
-        return system.construct_xblock_from_class(
+        return system.runtime.construct_xblock_from_class(
             cls,
             # The error module doesn't use scoped data, and thus doesn't need
             # real scope keys
@@ -147,7 +147,7 @@ class ErrorDescriptor(ErrorFields, XModuleDescriptor):
     @classmethod
     def from_descriptor(cls, descriptor, error_msg=None):
         return cls._construct(
-            descriptor.runtime,
+            descriptor.system,
             str(descriptor),
             error_msg,
             location=descriptor.location,

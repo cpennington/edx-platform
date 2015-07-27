@@ -36,7 +36,7 @@ from opaque_keys.edx.locator import CourseLocator, LibraryLocator
 from xblock.core import XBlock
 from xblock.exceptions import InvalidScopeError
 from xblock.fields import Scope, ScopeIds, Reference, ReferenceList, ReferenceValueDict
-from xblock.runtime import KvsFieldData
+from xblock.runtime import KvsFieldData, Runtime
 
 from xmodule.assetstore import AssetMetadata, CourseAssetsFromStorage
 from xmodule.error_module import ErrorDescriptor
@@ -185,7 +185,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
             [unicode(key) for key in self.cached_metadata.keys()],
         ))
 
-    def __init__(self, modulestore, course_key, module_data, default_class, cached_metadata, **kwargs):
+    def __init__(self, runtime, modulestore, course_key, module_data, default_class, cached_metadata, **kwargs):
         """
         modulestore: the module store that can be used to retrieve additional modules
 
@@ -206,11 +206,11 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
         render_template: a function for rendering templates, as per
             MakoDescriptorSystem
         """
-        id_manager = CourseLocationManager(course_key)
-        kwargs.setdefault('id_reader', id_manager)
-        kwargs.setdefault('id_generator', id_manager)
+        self.runtime = runtime
+        #kwargs.setdefault('id_reader', id_manager)
+        #kwargs.setdefault('id_generator', id_manager)
         super(CachingDescriptorSystem, self).__init__(
-            field_data=None,
+            #field_data=None,
             load_item=self.load_item,
             **kwargs
         )
@@ -244,7 +244,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
             # load the module and apply the inherited metadata
             try:
                 category = json_data['location']['category']
-                class_ = self.load_block_type(category)
+                class_ = self.runtime.load_block_type(category)
 
                 definition = json_data.get('definition', {})
                 metadata = json_data.get('metadata', {})
@@ -279,7 +279,7 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
                 if isinstance(data, basestring):
                     data = {'data': data}
 
-                mixed_class = self.mixologist.mix(class_)
+                mixed_class = self.runtime.mixologist.mix(class_)
                 if data:  # empty or None means no work
                     data = self._convert_reference_fields_to_keys(mixed_class, location.course_key, data)
                 metadata = self._convert_reference_fields_to_keys(mixed_class, location.course_key, metadata)
@@ -292,7 +292,9 @@ class CachingDescriptorSystem(MakoDescriptorSystem, EditInfoRuntimeMixin):
 
                 field_data = KvsFieldData(kvs)
                 scope_ids = ScopeIds(None, category, location, location)
-                module = self.construct_xblock_from_class(class_, scope_ids, field_data, for_parent=for_parent)
+                module = self.runtime.construct_xblock_from_class(class_, scope_ids, field_data, for_parent=for_parent)
+                self.runtime.bind_descriptor_system(module, self)
+
                 if self.cached_metadata is not None:
                     # parent container pointers don't differentiate between draft and non-draft
                     # so when we do the lookup, we should do so with a non-draft location
@@ -901,6 +903,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
                 to add data to, and to load the XBlocks from.
             for_parent (:class:`XBlock`): The parent of the XBlock being loaded.
         """
+        runtime = self._active_runtime
         course_key = self.fill_in_run(course_key)
         location = Location._from_deprecated_son(item['location'], course_key.run)
         data_dir = getattr(item, 'data_dir', location.course)
@@ -927,6 +930,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
                 services["request_cache"] = self.request_cache
 
             system = CachingDescriptorSystem(
+                runtime=runtime,
                 modulestore=self,
                 course_key=course_key,
                 module_data=data_cache,
@@ -935,10 +939,6 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
                 error_tracker=self.error_tracker,
                 render_template=self.render_template,
                 cached_metadata=cached_metadata,
-                mixins=self.xblock_mixins,
-                select=self.xblock_select,
-                disabled_xblock_types=self.disabled_xblock_types,
-                services=services,
             )
         else:
             system = using_descriptor_system
@@ -1242,7 +1242,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             return xblock
 
     def create_xblock(
-        self, runtime, course_key, block_type, block_id=None, fields=None,
+        self, course_key, block_type, block_id=None, fields=None,
         metadata=None, definition_data=None, **kwargs
     ):
         """
@@ -1251,6 +1251,8 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         :param runtime: if you already have an xblock from the course, the xblock.runtime value
         :param fields: a dictionary of field names and values for the new xmodule
         """
+        runtime = self._active_runtime
+
         if metadata is None:
             metadata = {}
 
@@ -1264,31 +1266,19 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             else:
                 block_id = u'{}_{}'.format(block_type, uuid4().hex[:5])
 
-        if runtime is None:
-            services = {}
-            if self.i18n_service:
-                services["i18n"] = self.i18n_service
+        system = CachingDescriptorSystem(
+            runtime,
+            modulestore=self,
+            module_data={},
+            course_key=course_key,
+            default_class=self.default_class,
+            resources_fs=None,
+            error_tracker=self.error_tracker,
+            render_template=self.render_template,
+            cached_metadata={},
+        )
 
-            if self.fs_service:
-                services["fs"] = self.fs_service
-
-            if self.user_service:
-                services["user"] = self.user_service
-
-            runtime = CachingDescriptorSystem(
-                modulestore=self,
-                module_data={},
-                course_key=course_key,
-                default_class=self.default_class,
-                resources_fs=None,
-                error_tracker=self.error_tracker,
-                render_template=self.render_template,
-                cached_metadata={},
-                mixins=self.xblock_mixins,
-                select=self.xblock_select,
-                services=services,
-            )
-        xblock_class = runtime.load_block_type(block_type)
+        xblock_class = self._active_runtime.load_block_type(block_type)
         location = course_key.make_usage_key(block_type, block_id)
         dbmodel = self._create_new_field_data(block_type, location, definition_data, metadata)
         xmodule = runtime.construct_xblock_from_class(
@@ -1300,6 +1290,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             dbmodel,
             for_parent=kwargs.get('for_parent'),
         )
+        runtime.bind_descriptor_system(xmodule, system)
         if fields is not None:
             for key, value in fields.iteritems():
                 setattr(xmodule, key, value)
@@ -1327,8 +1318,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             else:
                 block_id = u'{}_{}'.format(block_type, uuid4().hex[:5])
 
-        runtime = kwargs.pop('runtime', None)
-        xblock = self.create_xblock(runtime, course_key, block_type, block_id, **kwargs)
+        xblock = self.create_xblock(course_key=course_key, block_type=block_type, block_id=block_id, **kwargs)
         xblock = self.update_item(xblock, user_id, allow_not_found=True)
 
         return xblock
@@ -1354,7 +1344,13 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             parent = self.get_item(parent_usage_key)
             kwargs.setdefault('for_parent', parent)
 
-        xblock = self.create_item(user_id, parent_usage_key.course_key, block_type, block_id=block_id, **kwargs)
+        xblock = self.create_item(
+            user_id=user_id,
+            course_key=parent_usage_key.course_key,
+            block_type=block_type,
+            block_id=block_id,
+            **kwargs
+        )
 
         if parent is not None and 'detached' not in xblock._class_tags:
             # Originally added to support entrance exams (settings.FEATURES.get('ENTRANCE_EXAMS'))
@@ -1373,8 +1369,13 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         """
         if block_type == 'course':
             block_id = course_key.run
-        xblock = self.create_xblock(runtime, course_key, block_type, block_id, fields)
-        return self.update_item(xblock, user_id, allow_not_found=True)
+        xblock = self.create_xblock(
+            course_key=course_key,
+            block_type=block_type,
+            block_id=block_id,
+            fields=fields
+        )
+        return self.update_item(xblock=xblock, user_id=user_id, allow_not_found=True)
 
     def _get_course_for_item(self, location, depth=0):
         '''

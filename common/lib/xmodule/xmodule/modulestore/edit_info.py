@@ -14,42 +14,42 @@ class EditInfoMixin(XBlockMixin):
         """
         The user id of the last user to change this xblock content, children, or settings.
         """
-        return self.runtime.get_edited_by(self)
+        return self.system.get_edited_by(self)
 
     @property
     def edited_on(self):
         """
         The datetime of the last change to this xblock content, children, or settings.
         """
-        return self.runtime.get_edited_on(self)
+        return self.system.get_edited_on(self)
 
     @property
     def subtree_edited_by(self):
         """
         The user id of the last user to change content, children, or settings in this xblock's subtree
         """
-        return self.runtime.get_subtree_edited_by(self)
+        return self.system.get_subtree_edited_by(self)
 
     @property
     def subtree_edited_on(self):
         """
         The datetime of the last change content, children, or settings in this xblock's subtree
         """
-        return self.runtime.get_subtree_edited_on(self)
+        return self.system.get_subtree_edited_on(self)
 
     @property
     def published_by(self):
         """
         The user id of the last user to publish this specific xblock (or a previous version of it).
         """
-        return self.runtime.get_published_by(self)
+        return self.system.get_published_by(self)
 
     @property
     def published_on(self):
         """
         The datetime of the last time this specific xblock was published.
         """
-        return self.runtime.get_published_on(self)
+        return self.system.get_published_on(self)
 
 
 class EditInfoRuntimeMixin(object):

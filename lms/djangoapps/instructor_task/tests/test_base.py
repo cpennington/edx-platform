@@ -134,11 +134,11 @@ class InstructorTaskCourseTestCase(LoginEnrollmentTestCase, ModuleStoreTestCase)
         Add a chapter and a sequential to the current course.
         """
         # Add a chapter to the course
-        chapter = ItemFactory.create(parent_location=self.course.location,
+        chapter = ItemFactory.create(parent=self.course,
                                      display_name=TEST_SECTION_NAME)
 
         # add a sequence to the course to which the problems can be added
-        self.problem_section = ItemFactory.create(parent_location=chapter.location,
+        self.problem_section = ItemFactory.create(parent=chapter,
                                                   category='sequential',
                                                   metadata={'graded': True, 'format': 'Homework'},
                                                   display_name=TEST_SECTION_NAME)
@@ -217,8 +217,7 @@ class InstructorTaskModuleTestCase(InstructorTaskCourseTestCase):
                         'correct_option': OPTION_1,
                         'num_responses': 2}
         problem_xml = factory.build_xml(**factory_args)
-        ItemFactory.create(parent_location=parent.location,
-                           parent=parent,
+        ItemFactory.create(parent=parent,
                            category="problem",
                            display_name=problem_url_name,
                            data=problem_xml,

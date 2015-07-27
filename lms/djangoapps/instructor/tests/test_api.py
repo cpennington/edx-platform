@@ -3490,7 +3490,7 @@ class TestDueDateExtensions(ModuleStoreTestCase, LoginEnrollmentTestCase):
                            week3.location.to_deprecated_string()]
 
         homework = ItemFactory.create(
-            parent_location=week1.location,
+            parent=week1,
             due=due
         )
         week1.children = [homework.location.to_deprecated_string()]

@@ -19,9 +19,14 @@ import dogstats_wrapper as dog_stats_api
 from opaque_keys.edx.locations import Location
 from opaque_keys.edx.keys import UsageKey
 from xblock.core import XBlock
+from xblock.runtime import Runtime
+from xblock.test.tools import unabc
 from xmodule.modulestore import prefer_xmodules, ModuleStoreEnum
 from xmodule.tabs import CourseTab
-from xmodule.x_module import DEPRECATION_VSCOMPAT_EVENT
+from xmodule.x_module import DEPRECATION_VSCOMPAT_EVENT, OpaqueKeyReader, XModuleMixin, XModuleServiceProvider
+from xmodule.modulestore.inheritance import InheritanceMixin
+from xmodule.modulestore.edit_info import EditInfoMixin
+from xmodule.modulestore.xml import CourseLocationManager
 
 
 class Dummy(object):
@@ -88,6 +93,24 @@ class XModuleFactory(Factory):
 last_course = threading.local()
 
 
+@unabc("XModuleFactories should not call {}")
+class TestFactoryRuntime(XModuleServiceProvider, Runtime):
+    def __init__(self, course_key, modulestore, **kwargs):
+        self.modulestore = modulestore
+        self.id_manager = CourseLocationManager(course_key)
+        self.course_id = course_key
+
+        kwargs.setdefault('id_reader', self.id_manager)
+        kwargs.setdefault('id_generator', self.id_manager)
+
+        kwargs.setdefault('mixins', (InheritanceMixin, XModuleMixin, EditInfoMixin))
+        kwargs.setdefault('select', prefer_xmodules)
+        super(TestFactoryRuntime, self).__init__(**kwargs)
+
+    def get_block(self, block_id, for_parent=None):
+        return self.modulestore.get_item(block_id, for_parent=for_parent)
+
+
 class CourseFactory(XModuleFactory):
     """
     Factory for XModule courses.
@@ -111,19 +134,23 @@ class CourseFactory(XModuleFactory):
         run = kwargs.pop('run', name)
         user_id = kwargs.pop('user_id', ModuleStoreEnum.UserID.test)
 
+        course_key = store.make_course_key(org, number, run)
+        runtime = kwargs.pop('runtime', TestFactoryRuntime(course_key, store))
+
         # Pass the metadata just as field=value pairs
         kwargs.update(kwargs.pop('metadata', {}))
         default_store_override = kwargs.pop('default_store', None)
 
-        with store.branch_setting(ModuleStoreEnum.Branch.draft_preferred):
-            if default_store_override is not None:
-                with store.default_store(default_store_override):
+        with store.xblock_runtime(runtime):
+            with store.branch_setting(ModuleStoreEnum.Branch.draft_preferred):
+                if default_store_override is not None:
+                    with store.default_store(default_store_override):
+                        new_course = store.create_course(org, number, run, user_id, fields=kwargs)
+                else:
                     new_course = store.create_course(org, number, run, user_id, fields=kwargs)
-            else:
-                new_course = store.create_course(org, number, run, user_id, fields=kwargs)
 
-            last_course.loc = new_course.location
-            return new_course
+                last_course.loc = new_course.location
+                return new_course
 
 
 class LibraryFactory(XModuleFactory):
@@ -240,67 +267,74 @@ class ItemFactory(XModuleFactory):
 
         store = kwargs.pop('modulestore')
 
+        runtime = kwargs.pop('runtime', None)
+
         # This code was based off that in cms/djangoapps/contentstore/views.py
-        parent = kwargs.pop('parent', None) or store.get_item(parent_location)
+        parent = kwargs.pop('parent', None)
 
-        with store.branch_setting(ModuleStoreEnum.Branch.draft_preferred):
+        if parent is None:
+            with store.xblock_runtime(runtime):
+                parent = store.get_item(parent_location)
 
-            if 'boilerplate' in kwargs:
-                template_id = kwargs.pop('boilerplate')
-                clz = XBlock.load_class(category, select=prefer_xmodules)
-                template = clz.get_template(template_id)
-                assert template is not None
-                metadata.update(template.get('metadata', {}))
-                if not isinstance(data, basestring):
-                    data.update(template.get('data'))
+        with store.xblock_runtime(parent.runtime):
+            with store.branch_setting(ModuleStoreEnum.Branch.draft_preferred):
 
-            # replace the display name with an optional parameter passed in from the caller
-            if display_name is not None:
-                metadata['display_name'] = display_name
+                if 'boilerplate' in kwargs:
+                    template_id = kwargs.pop('boilerplate')
+                    clz = XBlock.load_class(category, select=prefer_xmodules)
+                    template = clz.get_template(template_id)
+                    assert template is not None
+                    metadata.update(template.get('metadata', {}))
+                    if not isinstance(data, basestring):
+                        data.update(template.get('data'))
 
-            module = store.create_child(
-                user_id,
-                parent.location,
-                location.block_type,
-                block_id=location.block_id,
-                metadata=metadata,
-                definition_data=data,
-                runtime=parent.runtime,
-                fields=kwargs,
-            )
+                # replace the display name with an optional parameter passed in from the caller
+                if display_name is not None:
+                    metadata['display_name'] = display_name
 
-            # VS[compat] cdodge: This is a hack because static_tabs also have references from the course module, so
-            # if we add one then we need to also add it to the policy information (i.e. metadata)
-            # we should remove this once we can break this reference from the course to static tabs
-            if category == 'static_tab':
-                dog_stats_api.increment(
-                    DEPRECATION_VSCOMPAT_EVENT,
-                    tags=(
-                        "location:itemfactory_create_static_tab",
-                        u"block:{}".format(location.block_type),
+                module = store.create_child(
+                    user_id=user_id,
+                    parent_usage_key=parent.location,
+                    block_type=location.block_type,
+                    block_id=location.block_id,
+                    metadata=metadata,
+                    definition_data=data,
+                    runtime=parent.runtime,
+                    fields=kwargs,
+                )
+
+                # VS[compat] cdodge: This is a hack because static_tabs also have references from the course module, so
+                # if we add one then we need to also add it to the policy information (i.e. metadata)
+                # we should remove this once we can break this reference from the course to static tabs
+                if category == 'static_tab':
+                    dog_stats_api.increment(
+                        DEPRECATION_VSCOMPAT_EVENT,
+                        tags=(
+                            "location:itemfactory_create_static_tab",
+                            u"block:{}".format(location.block_type),
+                        )
                     )
-                )
 
-                course = store.get_course(location.course_key)
-                course.tabs.append(
-                    CourseTab.load('static_tab', name='Static Tab', url_slug=location.name)
-                )
-                store.update_item(course, user_id)
+                    course = store.get_course(location.course_key)
+                    course.tabs.append(
+                        CourseTab.load('static_tab', name='Static Tab', url_slug=location.name)
+                    )
+                    store.update_item(course, user_id)
 
-            # parent and publish the item, so it can be accessed
-            if 'detached' not in module._class_tags:
-                parent.children.append(location)
-                store.update_item(parent, user_id)
-                if publish_item:
-                    published_parent = store.publish(parent.location, user_id)
-                    # module is last child of parent
-                    return published_parent.get_children()[-1]
+                # parent and publish the item, so it can be accessed
+                if 'detached' not in module._class_tags:
+                    parent.children.append(location)
+                    store.update_item(parent, user_id)
+                    if publish_item:
+                        published_parent = store.publish(parent.location, user_id)
+                        # module is last child of parent
+                        return published_parent.get_children()[-1]
+                    else:
+                        return store.get_item(location)
+                elif publish_item:
+                    return store.publish(location, user_id)
                 else:
-                    return store.get_item(location)
-            elif publish_item:
-                return store.publish(location, user_id)
-            else:
-                return module
+                    return module
 
 
 @contextmanager

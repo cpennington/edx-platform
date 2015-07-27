@@ -81,8 +81,8 @@ class TestJumpTo(ModuleStoreTestCase):
 
     def test_jumpto_from_section(self):
         course = CourseFactory.create()
-        chapter = ItemFactory.create(category='chapter', parent_location=course.location)
-        section = ItemFactory.create(category='sequential', parent_location=chapter.location)
+        chapter = ItemFactory.create(category='chapter', parent=course)
+        section = ItemFactory.create(category='sequential', parent=chapter)
         expected = 'courses/{course_id}/courseware/{chapter_id}/{section_id}/'.format(
             course_id=unicode(course.id),
             chapter_id=chapter.url_name,
@@ -98,12 +98,12 @@ class TestJumpTo(ModuleStoreTestCase):
 
     def test_jumpto_from_module(self):
         course = CourseFactory.create()
-        chapter = ItemFactory.create(category='chapter', parent_location=course.location)
-        section = ItemFactory.create(category='sequential', parent_location=chapter.location)
-        vertical1 = ItemFactory.create(category='vertical', parent_location=section.location)
-        vertical2 = ItemFactory.create(category='vertical', parent_location=section.location)
-        module1 = ItemFactory.create(category='html', parent_location=vertical1.location)
-        module2 = ItemFactory.create(category='html', parent_location=vertical2.location)
+        chapter = ItemFactory.create(category='chapter', parent=course)
+        section = ItemFactory.create(category='sequential', parent=chapter)
+        vertical1 = ItemFactory.create(category='vertical', parent=section)
+        vertical2 = ItemFactory.create(category='vertical', parent=section)
+        module1 = ItemFactory.create(category='html', parent=vertical1)
+        module2 = ItemFactory.create(category='html', parent=vertical2)
 
         expected = 'courses/{course_id}/courseware/{chapter_id}/{section_id}/1'.format(
             course_id=unicode(course.id),
@@ -133,15 +133,15 @@ class TestJumpTo(ModuleStoreTestCase):
 
     def test_jumpto_from_nested_module(self):
         course = CourseFactory.create()
-        chapter = ItemFactory.create(category='chapter', parent_location=course.location)
-        section = ItemFactory.create(category='sequential', parent_location=chapter.location)
-        vertical = ItemFactory.create(category='vertical', parent_location=section.location)
-        nested_section = ItemFactory.create(category='sequential', parent_location=vertical.location)
-        nested_vertical1 = ItemFactory.create(category='vertical', parent_location=nested_section.location)
+        chapter = ItemFactory.create(category='chapter', parent=course)
+        section = ItemFactory.create(category='sequential', parent=chapter)
+        vertical = ItemFactory.create(category='vertical', parent=section)
+        nested_section = ItemFactory.create(category='sequential', parent=vertical)
+        nested_vertical1 = ItemFactory.create(category='vertical', parent=nested_section)
         # put a module into nested_vertical1 for completeness
-        ItemFactory.create(category='html', parent_location=nested_vertical1.location)
-        nested_vertical2 = ItemFactory.create(category='vertical', parent_location=nested_section.location)
-        module2 = ItemFactory.create(category='html', parent_location=nested_vertical2.location)
+        ItemFactory.create(category='html', parent=nested_vertical1)
+        nested_vertical2 = ItemFactory.create(category='vertical', parent=nested_section)
+        module2 = ItemFactory.create(category='html', parent=nested_vertical2)
 
         # internal position of module2 will be 1_2 (2nd item withing 1st item)
 
@@ -579,10 +579,10 @@ class BaseDueDateTests(ModuleStoreTestCase):
         :param course_kwargs: All kwargs are passed to through to the :class:`CourseFactory`
         """
         course = CourseFactory.create(**course_kwargs)
-        chapter = ItemFactory.create(category='chapter', parent_location=course.location)  # pylint: disable=no-member
-        section = ItemFactory.create(category='sequential', parent_location=chapter.location, due=datetime(2013, 9, 18, 11, 30, 00))
-        vertical = ItemFactory.create(category='vertical', parent_location=section.location)
-        ItemFactory.create(category='problem', parent_location=vertical.location)
+        chapter = ItemFactory.create(category='chapter', parent=course)  # pylint: disable=no-member
+        section = ItemFactory.create(category='sequential', parent=chapter, due=datetime(2013, 9, 18, 11, 30, 00))
+        vertical = ItemFactory.create(category='vertical', parent=section)
+        ItemFactory.create(category='problem', parent=vertical)
 
         course = modulestore().get_course(course.id)  # pylint: disable=no-member
         self.assertIsNotNone(course.get_children()[0].get_children()[0].due)

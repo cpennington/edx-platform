@@ -917,12 +917,12 @@ class ViewInStudioTest(ModuleStoreTestCase):
 
         descriptor = ItemFactory.create(
             category='vertical',
-            parent_location=course.location,
+            parent=course,
         )
 
         child_descriptor = ItemFactory.create(
             category='vertical',
-            parent_location=descriptor.location
+            parent=descriptor
         )
 
         self.module = self._get_module(course.id, descriptor, descriptor.location)

@@ -1421,18 +1421,18 @@ class TestXBlockInfo(ItemTest):
         with self.store.default_store(store_type):
             course = CourseFactory.create()
             chapter = ItemFactory.create(
-                parent_location=course.location, category='chapter', display_name='Week 1'
+                parent=course, category='chapter', display_name='Week 1'
             )
             outline_url = reverse_usage_url('xblock_outline_handler', chapter.location)
             with check_mongo_calls(chapter_queries):
                 self.client.get(outline_url, HTTP_ACCEPT='application/json')
 
             sequential = ItemFactory.create(
-                parent_location=chapter.location, category='sequential', display_name='Sequential 1'
+                parent=chapter, category='sequential', display_name='Sequential 1'
             )
 
             ItemFactory.create(
-                parent_location=sequential.location, category='vertical', display_name='Vertical 1'
+                parent=sequential, category='vertical', display_name='Vertical 1'
             )
             # calls should be same after adding two new children for split only.
             with check_mongo_calls(chapter_queries_1):
@@ -1484,7 +1484,7 @@ class TestXBlockInfo(ItemTest):
         )
 
         subsection = ItemFactory.create(
-            parent_location=chapter.location, category='sequential', display_name="Subsection - Entrance Exam",
+            parent=chapter, category='sequential', display_name="Subsection - Entrance Exam",
             user_id=self.user.id, in_entrance_exam=True
         )
         subsection = modulestore().get_item(subsection.location)
@@ -1560,7 +1560,7 @@ class TestXBlockInfo(ItemTest):
         with self.store.default_store(store_type):
             course = CourseFactory.create()
             chapter = ItemFactory.create(
-                parent_location=course.location, category='chapter', display_name='Week 1'
+                parent=course, category='chapter', display_name='Week 1'
             )
 
             chapter.start = datetime(year=1899, month=1, day=1, tzinfo=UTC)
@@ -1783,7 +1783,7 @@ class TestXBlockPublishingInfo(ItemTest):
         Creates a child xblock for the given parent.
         """
         child = ItemFactory.create(
-            parent_location=parent.location, category=category, display_name=display_name,
+            parent=parent, category=category, display_name=display_name,
             user_id=self.user.id, publish_item=publish_item
         )
         if staff_only:

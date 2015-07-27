@@ -54,6 +54,7 @@ from .entrance_exams import (
 )
 from courseware.user_state_client import DjangoXBlockUserStateClient
 from course_modes.models import CourseMode
+from lms_xblock.runtime import LmsRuntime
 
 from open_ended_grading import open_ended_notifications
 from open_ended_grading.views import StaffGradingTab, PeerGradingTab, OpenEndedGradingTab
@@ -122,21 +123,23 @@ def courses(request):
     """
     Render "find courses" page.  The course selection work is done in courseware.courses.
     """
-    courses_list = []
-    course_discovery_meanings = getattr(settings, 'COURSE_DISCOVERY_MEANINGS', {})
-    if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
-        courses_list = get_courses(request.user, request.META.get('HTTP_HOST'))
+    # Goal: have syntax be: LmsRuntime(...).get_courses()
+    with modulestore().xblock_runtime(LmsRuntime(request)):
+        courses_list = []
+        course_discovery_meanings = getattr(settings, 'COURSE_DISCOVERY_MEANINGS', {})
+        if not settings.FEATURES.get('ENABLE_COURSE_DISCOVERY'):
+            courses_list = get_courses(request.user, request.META.get('HTTP_HOST'))
 
-        if microsite.get_value("ENABLE_COURSE_SORTING_BY_START_DATE",
-                               settings.FEATURES["ENABLE_COURSE_SORTING_BY_START_DATE"]):
-            courses_list = sort_by_start_date(courses_list)
-        else:
-            courses_list = sort_by_announcement(courses_list)
+            if microsite.get_value("ENABLE_COURSE_SORTING_BY_START_DATE",
+                                settings.FEATURES["ENABLE_COURSE_SORTING_BY_START_DATE"]):
+                courses_list = sort_by_start_date(courses_list)
+            else:
+                courses_list = sort_by_announcement(courses_list)
 
-    return render_to_response(
-        "courseware/courses.html",
-        {'courses': courses_list, 'course_discovery_meanings': course_discovery_meanings}
-    )
+        return render_to_response(
+            "courseware/courses.html",
+            {'courses': courses_list, 'course_discovery_meanings': course_discovery_meanings}
+        )
 
 
 def render_accordion(user, request, course, chapter, section, field_data_cache):
@@ -1009,8 +1012,9 @@ def progress(request, course_id, student_id=None):
     course_key = SlashSeparatedCourseKey.from_deprecated_string(course_id)
 
     with modulestore().bulk_operations(course_key):
-        with grades.manual_transaction():
-            return _progress(request, course_key, student_id)
+        with modulestore().xblock_runtime(LmsRuntime(request=request, course_id=course_key)):
+            with grades.manual_transaction():
+                return _progress(request, course_key, student_id)
 
 
 def _progress(request, course_key, student_id):

@@ -215,7 +215,7 @@ class DraftPublishedOpTestCourseSetup(unittest.TestCase):
                 parent_item = getattr(self, parent_id)
                 block_id = _make_block_id(block_type, idx)
                 setattr(self, block_id, ItemFactory.create(
-                    parent_location=parent_item.location,
+                    parent=parent_item,
                     category=block_type,
                     modulestore=store,
                     publish_item=False,

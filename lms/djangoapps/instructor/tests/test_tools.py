@@ -9,9 +9,11 @@ import unittest
 
 from django.utils.timezone import utc
 from django.test.utils import override_settings
+from mock import Mock
 from nose.plugins.attrib import attr
 
 from courseware.field_overrides import OverrideFieldData  # pylint: disable=import-error
+from lms_xblock.runtime import LmsRuntime
 from student.tests.factories import UserFactory  # pylint: disable=import-error
 from xmodule.fields import Date
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
@@ -204,6 +206,7 @@ class TestSetDueDateExtension(ModuleStoreTestCase):
         super(TestSetDueDateExtension, self).setUp()
         OverrideFieldData.provider_classes = None
 
+        # TODO: Use a Studio runtime for block creation
         self.due = due = datetime.datetime(2010, 5, 12, 2, 42, tzinfo=utc)
         course = CourseFactory.create()
         week1 = ItemFactory.create(due=due, parent=course)

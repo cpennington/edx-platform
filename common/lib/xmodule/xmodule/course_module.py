@@ -953,13 +953,6 @@ class CourseDescriptor(CourseFields, SequenceDescriptor, LicenseMixin):
         # NOTE: relies on the modulestore to call set_grading_policy() right after
         # init.  (Modulestore is in charge of figuring out where to load the policy from)
 
-        # NOTE (THK): This is a last-minute addition for Fall 2012 launch to dynamically
-        #   disable the syllabus content for courses that do not provide a syllabus
-        if self.system.resources_fs is None:
-            self.syllabus_present = False
-        else:
-            self.syllabus_present = self.system.resources_fs.exists(path('syllabus'))
-
         self._grading_policy = {}
         self.set_grading_policy(self.grading_policy)
 
@@ -968,6 +961,16 @@ class CourseDescriptor(CourseFields, SequenceDescriptor, LicenseMixin):
 
         if not getattr(self, "tabs", []):
             CourseTabList.initialize_default(self)
+
+    @lazy
+    def syllabus_present(self):
+        # NOTE (THK): This is a last-minute addition for Fall 2012 launch to dynamically
+        #   disable the syllabus content for courses that do not provide a syllabus
+        if self.system.resources_fs is None:
+            return False
+        else:
+            return self.system.resources_fs.exists(path('syllabus'))
+
 
     def set_grading_policy(self, course_policy):
         """

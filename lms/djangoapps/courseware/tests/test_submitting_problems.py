@@ -1237,14 +1237,14 @@ class TestConditionalContent(TestSubmittingProblems):
         )
 
         vertical_0 = ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 0 vertical",
             location=vertical_0_url,
         )
 
         vertical_1 = ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 1 vertical",
             location=vertical_1_url,

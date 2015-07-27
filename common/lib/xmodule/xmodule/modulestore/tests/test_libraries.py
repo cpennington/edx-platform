@@ -78,14 +78,14 @@ class TestLibraries(MixedSplitTestCase):
         # In the library, create a vertical block with a child:
         vert_block = ItemFactory.create(
             category="vertical",
-            parent_location=library.location,
+            parent=library,
             user_id=self.user_id,
             publish_item=False,
             modulestore=self.store,
         )
         child_block = ItemFactory.create(
             category="html",
-            parent_location=vert_block.location,
+            parent=vert_block,
             user_id=self.user_id,
             publish_item=False,
             metadata={"data": "Hello world", },
@@ -101,7 +101,7 @@ class TestLibraries(MixedSplitTestCase):
 
         block = ItemFactory.create(
             category="html",
-            parent_location=library.location,
+            parent=library,
             user_id=self.user_id,
             publish_item=False,
             metadata={"data": "Hello world", },
@@ -126,7 +126,7 @@ class TestLibraries(MixedSplitTestCase):
         lib_key = library.location.library_key
         block = ItemFactory.create(
             category="html",
-            parent_location=library.location,
+            parent=library,
             user_id=self.user_id,
             publish_item=False,
             modulestore=self.store,
@@ -182,7 +182,7 @@ class TestLibraries(MixedSplitTestCase):
         library = LibraryFactory.create(modulestore=self.store)
         block = ItemFactory.create(
             category="html",
-            parent_location=library.location,
+            parent=library,
             user_id=self.user_id,
             publish_item=False,
             modulestore=self.store,

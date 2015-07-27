@@ -223,7 +223,7 @@ class CapaMixin(CapaFields):
         # Need the problem location in openendedresponse to send out.  Adding
         # it to the system here seems like the least clunky way to get it
         # there.
-        self.runtime.set('location', self.location.to_deprecated_string())
+        self.system.set('location', self.location.to_deprecated_string())
 
         try:
             # TODO (vshnayder): move as much as possible of this work and error
@@ -244,7 +244,7 @@ class CapaMixin(CapaFields):
                 loc=self.location.to_deprecated_string(), err=err)
             # TODO (vshnayder): do modules need error handlers too?
             # We shouldn't be switching on DEBUG.
-            if self.runtime.DEBUG:
+            if self.system.DEBUG:
                 log.warning(msg)
                 # TODO (vshnayder): This logic should be general, not here--and may
                 # want to preserve the data instead of replacing it.
@@ -280,9 +280,9 @@ class CapaMixin(CapaFields):
         """
         if self.rerandomize == RANDOMIZATION.NEVER:
             self.seed = 1
-        elif self.rerandomize == RANDOMIZATION.PER_STUDENT and hasattr(self.runtime, 'seed'):
+        elif self.rerandomize == RANDOMIZATION.PER_STUDENT and hasattr(self.system, 'seed'):
             # see comment on randomization_bin
-            self.seed = randomization_bin(self.runtime.seed, unicode(self.location).encode('utf-8'))
+            self.seed = randomization_bin(self.system.seed, unicode(self.location).encode('utf-8'))
         else:
             self.seed = struct.unpack('i', os.urandom(4))[0]
 
@@ -298,19 +298,19 @@ class CapaMixin(CapaFields):
             text = self.data
 
         capa_system = LoncapaSystem(
-            ajax_url=self.runtime.ajax_url,
-            anonymous_student_id=self.runtime.anonymous_student_id,
-            cache=self.runtime.cache,
-            can_execute_unsafe_code=self.runtime.can_execute_unsafe_code,
-            get_python_lib_zip=self.runtime.get_python_lib_zip,
-            DEBUG=self.runtime.DEBUG,
-            filestore=self.runtime.filestore,
+            ajax_url=self.system.ajax_url,
+            anonymous_student_id=self.system.anonymous_student_id,
+            cache=self.system.cache,
+            can_execute_unsafe_code=self.system.can_execute_unsafe_code,
+            get_python_lib_zip=self.system.get_python_lib_zip,
+            DEBUG=self.system.DEBUG,
+            filestore=self.system.filestore,
             i18n=self.runtime.service(self, "i18n"),
-            node_path=self.runtime.node_path,
-            render_template=self.runtime.render_template,
-            seed=self.runtime.seed,      # Why do we do this if we have self.seed?
-            STATIC_URL=self.runtime.STATIC_URL,
-            xqueue=self.runtime.xqueue,
+            node_path=self.system.node_path,
+            render_template=self.system.render_template,
+            seed=self.system.seed,      # Why do we do this if we have self.seed?
+            STATIC_URL=self.system.STATIC_URL,
+            xqueue=self.system.xqueue,
             matlab_api_key=self.matlab_api_key
         )
 
@@ -394,10 +394,10 @@ class CapaMixin(CapaFields):
         Return some html with data about the module
         """
         progress = self.get_progress()
-        return self.runtime.render_template('problem_ajax.html', {
+        return self.system.render_template('problem_ajax.html', {
             'element_id': self.location.html_id(),
             'id': self.location.to_deprecated_string(),
-            'ajax_url': self.runtime.ajax_url,
+            'ajax_url': self.system.ajax_url,
             'progress_status': Progress.to_js_status_str(progress),
             'progress_detail': Progress.to_js_detail_str(progress),
         })
@@ -533,7 +533,7 @@ class CapaMixin(CapaFields):
         log.exception(err.message)
 
         # TODO (vshnayder): another switch on DEBUG.
-        if self.runtime.DEBUG:
+        if self.system.DEBUG:
             msg = (
                 u'[courseware.capa.capa_module] <font size="+1" color="red">'
                 u'Failed to generate HTML for problem {url}</font>'.format(
@@ -620,7 +620,7 @@ class CapaMixin(CapaFields):
         event_info['hint_index'] = hint_index
         event_info['hint_len'] = len(demand_hints)
         event_info['hint_text'] = hint_text
-        self.runtime.track_function('edx.problem.hint.demandhint_displayed', event_info)
+        self.system.track_function('edx.problem.hint.demandhint_displayed', event_info)
 
         # We report the index of this hint, the client works out what index to use to get the next hint
         return {
@@ -681,21 +681,21 @@ class CapaMixin(CapaFields):
             'demand_hint_possible': demand_hint_possible
         }
 
-        html = self.runtime.render_template('problem.html', context)
+        html = self.system.render_template('problem.html', context)
 
         if encapsulate:
             html = u'<div id="problem_{id}" class="problem" data-url="{ajax_url}">'.format(
-                id=self.location.html_id(), ajax_url=self.runtime.ajax_url
+                id=self.location.html_id(), ajax_url=self.system.ajax_url
             ) + html + "</div>"
 
         # Now do all the substitutions which the LMS module_render normally does, but
         # we need to do here explicitly since we can get called for our HTML via AJAX
-        html = self.runtime.replace_urls(html)
-        if self.runtime.replace_course_urls:
-            html = self.runtime.replace_course_urls(html)
+        html = self.system.replace_urls(html)
+        if self.system.replace_course_urls:
+            html = self.system.replace_course_urls(html)
 
-        if self.runtime.replace_jump_to_id_urls:
-            html = self.runtime.replace_jump_to_id_urls(html)
+        if self.system.replace_jump_to_id_urls:
+            html = self.system.replace_jump_to_id_urls(html)
 
         return html
 
@@ -773,7 +773,7 @@ class CapaMixin(CapaFields):
             return False
         elif self.showanswer == SHOWANSWER.NEVER:
             return False
-        elif self.runtime.user_is_staff:
+        elif self.system.user_is_staff:
             # This is after the 'never' check because admins can see the answer
             # unless the problem explicitly prevents it
             return True
@@ -873,9 +873,9 @@ class CapaMixin(CapaFields):
         new_answers = dict()
         for answer_id in answers:
             try:
-                answer_content = self.runtime.replace_urls(answers[answer_id])
-                if self.runtime.replace_jump_to_id_urls:
-                    answer_content = self.runtime.replace_jump_to_id_urls(answer_content)
+                answer_content = self.system.replace_urls(answers[answer_id])
+                if self.system.replace_jump_to_id_urls:
+                    answer_content = self.system.replace_jump_to_id_urls(answer_content)
                 new_answer = {answer_id: answer_content}
             except TypeError:
                 log.debug(u'Unable to perform URL substitution on answers[%s]: %s',

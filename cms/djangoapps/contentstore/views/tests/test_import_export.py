@@ -275,13 +275,13 @@ class ImportTestCase(CourseTestCase):
         lib_key = library.location.library_key
         test_block = ItemFactory.create(
             category="vertical",
-            parent_location=library.location,
+            parent=library,
             user_id=self.user.id,
             publish_item=False,
         )
         test_block2 = ItemFactory.create(
             category="vertical",
-            parent_location=library.location,
+            parent=library,
             user_id=self.user.id,
             publish_item=False
         )
@@ -290,13 +290,13 @@ class ImportTestCase(CourseTestCase):
         unchanged_key = unchanged_lib.location.library_key
         test_block3 = ItemFactory.create(
             category="vertical",
-            parent_location=unchanged_lib.location,
+            parent=unchanged_lib,
             user_id=self.user.id,
             publish_item=False
         )
         test_block4 = ItemFactory.create(
             category="vertical",
-            parent_location=unchanged_lib.location,
+            parent=unchanged_lib,
             user_id=self.user.id,
             publish_item=False
         )
@@ -407,7 +407,7 @@ class ExportTestCase(CourseTestCase):
         """
         vertical = ItemFactory.create(parent_location=self.course.location, category='vertical', display_name='foo')
         ItemFactory.create(
-            parent_location=vertical.location,
+            parent=vertical,
             category='aawefawef'
         )
 
@@ -429,7 +429,7 @@ class ExportTestCase(CourseTestCase):
         library = LibraryFactory.create(modulestore=self.store)
         video_block = ItemFactory.create(
             category="video",
-            parent_location=library.location,
+            parent=library,
             user_id=self.user.id,
             publish_item=False,
             youtube_id_1_0=youtube_id
@@ -462,7 +462,7 @@ class ExportTestCase(CourseTestCase):
             parent_location=self.course.location, category='vertical', display_name='foo'
         )
         ItemFactory.create(
-            parent_location=vertical.location,
+            parent=vertical,
             category='customtag',
             display_name='custom_tag_foo',
             data=xml_string

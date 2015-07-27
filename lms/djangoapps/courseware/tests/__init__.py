@@ -99,7 +99,7 @@ class BaseTestXmodule(ModuleStoreTestCase):
             category="sequential",
         )
         self.section = ItemFactory.create(
-            parent_location=chapter.location,
+            parent=chapter,
             category="sequential"
         )
 

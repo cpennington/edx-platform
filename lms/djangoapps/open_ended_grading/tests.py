@@ -21,7 +21,6 @@ from xblock.fields import ScopeIds
 from config_models.models import cache
 from courseware.tests import factories
 from courseware.tests.helpers import LoginEnrollmentTestCase
-from lms.djangoapps.lms_xblock.runtime import LmsModuleSystem
 from student.roles import CourseStaffRole
 from student.models import unique_id_for_user
 from xblock_django.models import XBlockDisableConfig
@@ -31,6 +30,7 @@ from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.tests.django_utils import TEST_DATA_MIXED_TOY_MODULESTORE, ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 from xmodule.modulestore.xml_importer import import_course_from_xml
+from xmodule.x_module import ModuleSystem
 from xmodule.open_ended_grading_classes import peer_grading_service, controller_query_service
 from xmodule.tests import test_util_open_ended
 
@@ -280,7 +280,7 @@ class TestPeerGradingService(ModuleStoreTestCase, LoginEnrollmentTestCase):
         location = "i4x://edX/toy/peergrading/init"
         field_data = DictFieldData({'data': "<peergrading/>", 'location': location, 'category': 'peergrading'})
         self.mock_service = peer_grading_service.MockPeerGradingService()
-        self.system = LmsModuleSystem(
+        self.system = ModuleSystem(
             static_url=settings.STATIC_URL,
             track_function=None,
             get_module=None,
@@ -288,7 +288,6 @@ class TestPeerGradingService(ModuleStoreTestCase, LoginEnrollmentTestCase):
             replace_urls=None,
             s3_interface=test_util_open_ended.S3_INTERFACE,
             open_ended_grading_interface=test_util_open_ended.OPEN_ENDED_GRADING_INTERFACE,
-            mixins=settings.XBLOCK_MIXINS,
             error_descriptor_class=ErrorDescriptor,
             descriptor_runtime=None,
         )

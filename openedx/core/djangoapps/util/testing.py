@@ -22,82 +22,84 @@ class ContentGroupTestCase(ModuleStoreTestCase):
     def setUp(self):
         super(ContentGroupTestCase, self).setUp()
 
-        self.course = CourseFactory.create(
-            org='org', number='number', run='run',
-            # This test needs to use a course that has already started --
-            # discussion topics only show up if the course has already started,
-            # and the default start date for courses is Jan 1, 2030.
-            start=datetime(2012, 2, 3, tzinfo=UTC),
-            user_partitions=[
-                UserPartition(
-                    0,
-                    'Content Group Configuration',
-                    '',
-                    [Group(1, 'Alpha'), Group(2, 'Beta')],
-                    scheme_id='cohort'
-                )
-            ],
-            grading_policy={
-                "GRADER": [{
-                    "type": "Homework",
-                    "min_count": 1,
-                    "drop_count": 0,
-                    "short_label": "HW",
-                    "weight": 1.0
-                }]
-            },
-            cohort_config={'cohorted': True},
-            discussion_topics={}
-        )
+        # TODO: This should use the studio runtime to insert data
+        with self.store.xblock_runtime(LmsRuntime(Mock(name='request')):
+            self.course = CourseFactory.create(
+                org='org', number='number', run='run',
+                # This test needs to use a course that has already started --
+                # discussion topics only show up if the course has already started,
+                # and the default start date for courses is Jan 1, 2030.
+                start=datetime(2012, 2, 3, tzinfo=UTC),
+                user_partitions=[
+                    UserPartition(
+                        0,
+                        'Content Group Configuration',
+                        '',
+                        [Group(1, 'Alpha'), Group(2, 'Beta')],
+                        scheme_id='cohort'
+                    )
+                ],
+                grading_policy={
+                    "GRADER": [{
+                        "type": "Homework",
+                        "min_count": 1,
+                        "drop_count": 0,
+                        "short_label": "HW",
+                        "weight": 1.0
+                    }]
+                },
+                cohort_config={'cohorted': True},
+                discussion_topics={}
+            )
 
-        self.staff_user = UserFactory.create(is_staff=True)
-        self.alpha_user = UserFactory.create()
-        self.beta_user = UserFactory.create()
-        self.non_cohorted_user = UserFactory.create()
-        for user in [self.staff_user, self.alpha_user, self.beta_user, self.non_cohorted_user]:
-            CourseEnrollmentFactory.create(user=user, course_id=self.course.id)
+            self.staff_user = UserFactory.create(is_staff=True)
+            self.alpha_user = UserFactory.create()
+            self.beta_user = UserFactory.create()
+            self.non_cohorted_user = UserFactory.create()
+            for user in [self.staff_user, self.alpha_user, self.beta_user, self.non_cohorted_user]:
+                CourseEnrollmentFactory.create(user=user, course_id=self.course.id)
 
-        alpha_cohort = CohortFactory(
-            course_id=self.course.id,
-            name='Cohort Alpha',
-            users=[self.alpha_user]
-        )
-        beta_cohort = CohortFactory(
-            course_id=self.course.id,
-            name='Cohort Beta',
-            users=[self.beta_user]
-        )
-        CourseUserGroupPartitionGroup.objects.create(
-            course_user_group=alpha_cohort,
-            partition_id=self.course.user_partitions[0].id,
-            group_id=self.course.user_partitions[0].groups[0].id
-        )
-        CourseUserGroupPartitionGroup.objects.create(
-            course_user_group=beta_cohort,
-            partition_id=self.course.user_partitions[0].id,
-            group_id=self.course.user_partitions[0].groups[1].id
-        )
-        self.alpha_module = ItemFactory.create(
-            parent_location=self.course.location,
-            category='discussion',
-            discussion_id='alpha_group_discussion',
-            discussion_target='Visible to Alpha',
-            group_access={self.course.user_partitions[0].id: [self.course.user_partitions[0].groups[0].id]}
-        )
-        self.beta_module = ItemFactory.create(
-            parent_location=self.course.location,
-            category='discussion',
-            discussion_id='beta_group_discussion',
-            discussion_target='Visible to Beta',
-            group_access={self.course.user_partitions[0].id: [self.course.user_partitions[0].groups[1].id]}
-        )
-        self.global_module = ItemFactory.create(
-            parent_location=self.course.location,
-            category='discussion',
-            discussion_id='global_group_discussion',
-            discussion_target='Visible to Everyone'
-        )
-        self.course = self.store.get_item(self.course.location)
+            alpha_cohort = CohortFactory(
+                course_id=self.course.id,
+                name='Cohort Alpha',
+                users=[self.alpha_user]
+            )
+            beta_cohort = CohortFactory(
+                course_id=self.course.id,
+                name='Cohort Beta',
+                users=[self.beta_user]
+            )
+            CourseUserGroupPartitionGroup.objects.create(
+                course_user_group=alpha_cohort,
+                partition_id=self.course.user_partitions[0].id,
+                group_id=self.course.user_partitions[0].groups[0].id
+            )
+            CourseUserGroupPartitionGroup.objects.create(
+                course_user_group=beta_cohort,
+                partition_id=self.course.user_partitions[0].id,
+                group_id=self.course.user_partitions[0].groups[1].id
+            )
+            self.alpha_module = ItemFactory.create(
+                parent_location=self.course.location,
+                category='discussion',
+                discussion_id='alpha_group_discussion',
+                discussion_target='Visible to Alpha',
+                group_access={self.course.user_partitions[0].id: [self.course.user_partitions[0].groups[0].id]}
+            )
+            self.beta_module = ItemFactory.create(
+                parent_location=self.course.location,
+                category='discussion',
+                discussion_id='beta_group_discussion',
+                discussion_target='Visible to Beta',
+                group_access={self.course.user_partitions[0].id: [self.course.user_partitions[0].groups[1].id]}
+            )
+            self.global_module = ItemFactory.create(
+                parent_location=self.course.location,
+                category='discussion',
+                discussion_id='global_group_discussion',
+                discussion_target='Visible to Everyone'
+            )
+            self.course = self.store.get_item(self.course.location)
 
 
 class TestConditionalContent(ModuleStoreTestCase):
@@ -154,7 +156,7 @@ class TestConditionalContent(ModuleStoreTestCase):
                                      display_name='Chapter')
 
         # add a sequence to the course to which the problems can be added
-        self.problem_section = ItemFactory.create(parent_location=chapter.location,
+        self.problem_section = ItemFactory.create(parent=chapter,
                                                   category='sequential',
                                                   metadata={'graded': True, 'format': 'Homework'},
                                                   display_name=self.TEST_SECTION_NAME)
@@ -189,7 +191,7 @@ class TestConditionalContent(ModuleStoreTestCase):
         vertical_a_url = self.course.id.make_usage_key('vertical', 'split_test_vertical_a')
         vertical_b_url = self.course.id.make_usage_key('vertical', 'split_test_vertical_b')
         self.split_test = ItemFactory.create(
-            parent_location=problem_vertical.location,
+            parent=problem_vertical,
             category='split_test',
             display_name='Split Test',
             user_partition_id=self.partition.id,  # pylint: disable=no-member

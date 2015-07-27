@@ -36,7 +36,7 @@ class GetPreviewHtmlTestCase(ModuleStoreTestCase):
         """
         course = CourseFactory.create(default_store=ModuleStoreEnum.Type.split)
         html = ItemFactory.create(
-            parent_location=course.location,
+            parent=course,
             category="html",
             data={'data': "<html>foobar</html>"}
         )
@@ -82,7 +82,7 @@ class GetPreviewHtmlTestCase(ModuleStoreTestCase):
         """
         course = CourseFactory.create(default_store=ModuleStoreEnum.Type.split)
         html = ItemFactory.create(
-            parent_location=course.location,
+            parent=course,
             category="html",
             data={'data': "<html>foobar</html>"}
         )

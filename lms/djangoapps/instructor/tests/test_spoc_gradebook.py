@@ -44,7 +44,7 @@ class TestGradebook(ModuleStoreTestCase):
             category="sequential",
         )
         section = ItemFactory.create(
-            parent_location=chapter.location,
+            parent=chapter,
             category="sequential",
             metadata={'graded': True, 'format': 'Homework'}
         )
@@ -57,7 +57,7 @@ class TestGradebook(ModuleStoreTestCase):
         for i in xrange(USER_COUNT - 1):
             category = "problem"
             item = ItemFactory.create(
-                parent_location=section.location,
+                parent=section,
                 category=category,
                 data=StringResponseXMLFactory().build_xml(answer='foo'),
                 metadata={'rerandomize': 'always'}

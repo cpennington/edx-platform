@@ -34,6 +34,7 @@ from courseware.grades import iterate_grades_for
 from courseware.model_data import FieldDataCache
 from courseware.module_render import get_module_for_descriptor
 from edxmako.shortcuts import render_to_response
+from lms_xblock.runtime import LmsRuntime
 from opaque_keys.edx.keys import CourseKey
 from ccx_keys.locator import CCXLocator
 from student.roles import CourseCcxCoachRole
@@ -82,17 +83,18 @@ def coach_dashboard(view):
             return HttpResponseForbidden(
                 _('You must be a CCX Coach to access this view.'))
 
-        course = get_course_by_id(course_key, depth=None)
+        with modulestore().xblock_runtime(LmsRuntime(request=request)):
+            course = get_course_by_id(course_key, depth=None)
 
-        # if there is a ccx, we must validate that it is the ccx for this coach
-        if ccx is not None:
-            coach_ccx = get_ccx_for_coach(course, request.user)
-            if coach_ccx is None or coach_ccx.id != ccx.id:
-                return HttpResponseForbidden(
-                    _('You must be the coach for this ccx to access this view')
-                )
+            # if there is a ccx, we must validate that it is the ccx for this coach
+            if ccx is not None:
+                coach_ccx = get_ccx_for_coach(course, request.user)
+                if coach_ccx is None or coach_ccx.id != ccx.id:
+                    return HttpResponseForbidden(
+                        _('You must be the coach for this ccx to access this view')
+                    )
 
-        return view(request, course, ccx)
+            return view(request, course, ccx)
     return wrapper
 
 

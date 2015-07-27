@@ -44,7 +44,7 @@ def _get_overrides_for_user(user, block):
     Returns a dictionary of field override values keyed by field name.
     """
     query = StudentFieldOverride.objects.filter(
-        course_id=block.runtime.course_id,
+        course_id=block.location.course_key,
         location=block.location,
         student_id=user.id,
     )

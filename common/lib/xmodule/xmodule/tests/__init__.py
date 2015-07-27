@@ -25,6 +25,8 @@ from path import path
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
 from xblock.field_data import DictFieldData
 from xblock.fields import ScopeIds, Scope, Reference, ReferenceList, ReferenceValueDict
+from xblock.runtime import Runtime, IdReader
+from xblock.test.tools import unabc
 from xmodule.assetstore import AssetMetadata
 from xmodule.error_module import ErrorDescriptor
 from xmodule.mako_module import MakoDescriptorSystem
@@ -50,18 +52,8 @@ open_ended_grading_interface = {
     'grading_controller': 'grading_controller',
 }
 
-
-class TestModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
-    """
-    ModuleSystem for testing
-    """
-    def __init__(self, **kwargs):  # pylint: disable=unused-argument
-        id_manager = CourseLocationManager(kwargs['course_id'])
-        kwargs.setdefault('id_reader', id_manager)
-        kwargs.setdefault('id_generator', id_manager)
-        kwargs.setdefault('services', {}).setdefault('field-data', DictFieldData({}))
-        super(TestModuleSystem, self).__init__(**kwargs)
-
+@unabc('{} should not be used in tests.')
+class TestRuntime(Runtime):
     def handler_url(self, block, handler, suffix='', query='', thirdparty=False):
         return '{usage_id}/{handler}{suffix}?{query}'.format(
             usage_id=unicode(block.scope_ids.usage_id),
@@ -79,6 +71,13 @@ class TestModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
     # Disable XBlockAsides in most tests
     def get_asides(self, block):
         return []
+
+
+class TestModuleSystem(ModuleSystem):  # pylint: disable=abstract-method
+    """
+    ModuleSystem for testing
+    """
+    runtime = TestRuntime(Mock(spec=IdReader, name='id_reader'))
 
     def __repr__(self):
         """
@@ -155,7 +154,7 @@ def get_test_system(course_id=SlashSeparatedCourseKey('org', 'course', 'run')):
         error_descriptor_class=ErrorDescriptor,
         get_user_role=Mock(name='get_test_system.get_user_role', is_staff=False),
         user_location=Mock(name='get_test_system.user_location'),
-        descriptor_runtime=descriptor_system,
+        descriptor_system=descriptor_system,
     )
 
 
@@ -170,11 +169,11 @@ def get_test_descriptor_system():
         resources_fs=Mock(name='get_test_descriptor_system.resources_fs'),
         error_tracker=Mock(name='get_test_descriptor_system.error_tracker'),
         render_template=mock_render_template,
-        mixins=(InheritanceMixin, XModuleMixin),
-        field_data=field_data,
-        services={'field-data': field_data},
+        #mixins=(InheritanceMixin, XModuleMixin),
+        #field_data=field_data,
+        #services={'field-data': field_data},
     )
-    descriptor_system.get_asides = lambda block: []
+    #descriptor_system.get_asides = lambda block: []
     return descriptor_system
 
 

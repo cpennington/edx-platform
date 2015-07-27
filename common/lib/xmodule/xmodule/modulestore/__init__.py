@@ -25,8 +25,11 @@ from xmodule.errortracker import make_error_tracker
 from xmodule.assetstore import AssetMetadata
 from opaque_keys.edx.keys import CourseKey, UsageKey, AssetKey
 from opaque_keys.edx.locations import Location  # For import backwards compatibility
-from xblock.runtime import Mixologist
+from xblock.runtime import Mixologist, Runtime
 from xblock.core import XBlock
+from xmodule.x_module import OpaqueKeyReader, XModuleMixin, XModuleServiceProvider
+from xmodule.modulestore.inheritance import InheritanceMixin
+from xmodule.modulestore.edit_info import EditInfoMixin
 
 log = logging.getLogger('edx.modulestore')
 
@@ -37,6 +40,35 @@ new_contract('XBlock', XBlock)
 
 LIBRARY_ROOT = 'library.xml'
 COURSE_ROOT = 'course.xml'
+
+
+class ReadOnlyRuntime(XModuleServiceProvider, Runtime):
+    def __init__(self, modulestore, **kwargs):
+        self.modulestore = modulestore
+
+        kwargs.setdefault('id_reader', OpaqueKeyReader())
+
+        kwargs.setdefault('mixins', (InheritanceMixin, XModuleMixin, EditInfoMixin))
+        kwargs.setdefault('select', prefer_xmodules)
+        super(ReadOnlyRuntime, self).__init__(**kwargs)
+
+    def get_block(self, block_id, for_parent=None):
+        return self.modulestore.get_item(block_id, for_parent=for_parent)
+
+    def handler_url(self, *args, **kwargs):
+        raise NotImplementedError("ReadOnlyRuntime cannot be used for xblock rendering")
+
+    def local_resource_url(self, *args, **kwargs):
+        raise NotImplementedError("ReadOnlyRuntime cannot be used for xblock rendering")
+
+    def publish(self, *args, **kwargs):
+        raise NotImplementedError("ReadOnlyRuntime cannot be used for xblock rendering")
+
+    def resource_url(self, *args, **kwargs):
+        raise NotImplementedError("ReadOnlyRuntime cannot be used for xblock rendering")
+
+
+
 
 
 class ModuleStoreEnum(object):
@@ -167,6 +199,7 @@ class BulkOperationsMixin(object):
     mongo_connection.
     """
     def __init__(self, *args, **kwargs):
+        print args, kwargs
         super(BulkOperationsMixin, self).__init__(*args, **kwargs)
         self._active_bulk_ops = ActiveBulkThread(self._bulk_ops_record_type)
 
@@ -742,6 +775,13 @@ class ModuleStoreAssetWriteInterface(ModuleStoreAssetBase):
         pass
 
 
+class XBlockRuntimeStorage(threading.local):
+    def __init__(self):
+        self.runtime = None
+
+_XBLOCK_RUNTIME = XBlockRuntimeStorage()
+
+
 # pylint: disable=abstract-method
 class ModuleStoreRead(ModuleStoreAssetBase):
     """
@@ -991,6 +1031,26 @@ class ModuleStoreRead(ModuleStoreAssetBase):
         """
         pass
 
+    @contextmanager
+    def xblock_runtime(self, runtime):
+        previous_runtime = _XBLOCK_RUNTIME.runtime
+        print "STORING", previous_runtime
+        _XBLOCK_RUNTIME.runtime = runtime
+        print "SETTING", runtime
+        try:
+            yield
+        finally:
+            _XBLOCK_RUNTIME.runtime = previous_runtime
+            print "RESTORING", previous_runtime
+
+    @property
+    def _active_runtime(self):
+        if _XBLOCK_RUNTIME.runtime is None:
+            if self._default_runtime is not None:
+                return self._default_runtime
+            else:
+                raise AttributeError("No active runtime has been set. Use ModuleStore.xblock_runtime to set one.")
+        return _XBLOCK_RUNTIME.runtime
 
 # pylint: disable=abstract-method
 class ModuleStoreWrite(ModuleStoreRead, ModuleStoreAssetWriteInterface):
@@ -1122,7 +1182,6 @@ class ModuleStoreReadBase(BulkOperationsMixin, ModuleStoreRead):
         contentstore=None,
         doc_store_config=None,  # ignore if passed up
         metadata_inheritance_cache_subsystem=None, request_cache=None,
-        xblock_mixins=(), xblock_select=None, disabled_xblock_types=(),  # pylint: disable=bad-continuation
         # temporary parms to enable backward compatibility. remove once all envs migrated
         db=None, collection=None, host=None, port=None, tz_aware=True, user=None, password=None,
         # allow lower level init args to pass harmlessly
@@ -1137,10 +1196,8 @@ class ModuleStoreReadBase(BulkOperationsMixin, ModuleStoreRead):
         # TODO move the inheritance_cache_subsystem to classes which use it
         self.metadata_inheritance_cache_subsystem = metadata_inheritance_cache_subsystem
         self.request_cache = request_cache
-        self.xblock_mixins = xblock_mixins
-        self.xblock_select = xblock_select
-        self.disabled_xblock_types = disabled_xblock_types
         self.contentstore = contentstore
+        self._default_runtime = ReadOnlyRuntime(self)
 
     def get_course_errors(self, course_key):
         """
@@ -1237,10 +1294,6 @@ class ModuleStoreWriteBase(ModuleStoreReadBase, ModuleStoreWrite):
     '''
     Implement interface functionality that can be shared.
     '''
-    def __init__(self, contentstore, **kwargs):
-        super(ModuleStoreWriteBase, self).__init__(contentstore=contentstore, **kwargs)
-        self.mixologist = Mixologist(self.xblock_mixins)
-
     def partition_fields_by_scope(self, category, fields):
         """
         Return dictionary of {scope: {field1: val, ..}..} for the fields of this potential xblock
@@ -1251,9 +1304,12 @@ class ModuleStoreWriteBase(ModuleStoreReadBase, ModuleStoreWrite):
         result = collections.defaultdict(dict)
         if fields is None:
             return result
-        cls = self.mixologist.mix(XBlock.load_class(category, select=prefer_xmodules))
+        cls = self._active_runtime.mixologist.mix(XBlock.load_class(category, select=prefer_xmodules))
         for field_name, value in fields.iteritems():
-            field = getattr(cls, field_name)
+            if field_name not in cls.fields:
+                continue
+
+            field = cls.fields[field_name]
             result[field.scope][field_name] = value
         return result
 
@@ -1268,9 +1324,9 @@ class ModuleStoreWriteBase(ModuleStoreReadBase, ModuleStoreWrite):
         about_descriptor = XBlock.load_class('about')
         overview_template = about_descriptor.get_template('overview.yaml')
         self.create_item(
-            user_id,
-            about_location.course_key,
-            about_location.block_type,
+            user_id=user_id,
+            course_key=about_location.course_key,
+            block_type=about_location.block_type,
             block_id=about_location.block_id,
             definition_data={'data': overview_template.get('data')},
             metadata=overview_template.get('metadata'),

@@ -24,17 +24,17 @@ class AuthoringMixinTestCase(ModuleStoreTestCase):
         )
         sequential = ItemFactory.create(
             category='sequential',
-            parent_location=chapter.location,
+            parent=chapter,
             display_name='Test Sequential'
         )
         vertical = ItemFactory.create(
             category='vertical',
-            parent_location=sequential.location,
+            parent=sequential,
             display_name='Test Vertical'
         )
         video = ItemFactory.create(
             category='video',
-            parent_location=vertical.location,
+            parent=vertical,
             display_name='Test Vertical'
         )
         self.vertical_location = vertical.location

@@ -41,7 +41,7 @@ class UnitPageTestCase(StudioPageTestCase):
         """
         child_container = ItemFactory.create(parent_location=self.vertical.location,
                                              category='split_test', display_name='Split Test')
-        ItemFactory.create(parent_location=child_container.location,
+        ItemFactory.create(parent=child_container,
                            category='html', display_name='grandchild')
         published_child_container = self.store.publish(child_container.location, self.user.id)
         self.validate_preview_html(published_child_container, STUDENT_VIEW, can_add=False)
@@ -53,7 +53,7 @@ class UnitPageTestCase(StudioPageTestCase):
         """
         child_container = ItemFactory.create(parent_location=self.vertical.location,
                                              category='split_test', display_name='Split Test')
-        ItemFactory.create(parent_location=child_container.location,
+        ItemFactory.create(parent=child_container,
                            category='html', display_name='grandchild')
         draft_child_container = self.store.get_item(child_container.location)
         self.validate_preview_html(draft_child_container, STUDENT_VIEW, can_add=False)

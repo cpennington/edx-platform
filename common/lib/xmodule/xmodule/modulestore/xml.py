@@ -63,7 +63,7 @@ def clean_out_mako_templating(xml_string):
 
 
 class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
-    def __init__(self, xmlstore, course_id, course_dir,
+    def __init__(self, runtime, xmlstore, course_id, course_dir,
                  error_tracker,
                  load_error_modules=True, target_course_id=None, **kwargs):
         """
@@ -72,6 +72,7 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
 
         xmlstore: the XMLModuleStore to store the loaded modules in
         """
+        self.runtime = runtime
         self.unnamed = defaultdict(int)  # category -> num of new url_names for that category
         self.used_names = defaultdict(set)  # category -> set of used url_names
 
@@ -209,7 +210,7 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
                     # Normally, we don't want lots of exception traces in our logs from common
                     # content problems.  But if you're debugging the xml loading code itself,
                     # uncomment the next line.
-                    # exc_info=True
+                    exc_info=True
                 )
 
                 msg = msg % (unicode(err)[:200])
@@ -264,8 +265,6 @@ class ImportSystem(XMLParsingSystem, MakoDescriptorSystem):
             render_template=render_template,
             error_tracker=error_tracker,
             process_xml=process_xml,
-            id_generator=id_manager,
-            id_reader=id_manager,
             **kwargs
         )
 
@@ -559,20 +558,19 @@ class XMLModuleStore(ModuleStoreReadBase):
             if self.user_service:
                 services['user'] = self.user_service
 
+            runtime=self._active_runtime
+
             system = ImportSystem(
+                runtime=runtime,
                 xmlstore=self,
                 course_id=course_id,
                 course_dir=course_dir,
                 error_tracker=tracker,
                 load_error_modules=self.load_error_modules,
                 get_policy=get_policy,
-                mixins=self.xblock_mixins,
-                default_class=self.default_class,
-                select=self.xblock_select,
-                field_data=self.field_data,
-                services=services,
                 target_course_id=target_course_id,
             )
+            runtime._services['import-system'] = system
             course_descriptor = system.process_xml(etree.tostring(course_data, encoding='unicode'))
             # If we fail to load the course, then skip the rest of the loading steps
             if isinstance(course_descriptor, ErrorDescriptor):
@@ -707,7 +705,7 @@ class XMLModuleStore(ModuleStoreReadBase):
                             data_content = {'data': html, 'location': loc, 'category': category}
 
                     if module is None:
-                        module = system.construct_xblock(
+                        module = system.runtime.construct_xblock(
                             category,
                             # We're loading a descriptor, so student_id is meaningless
                             # We also don't have separate notions of definition and usage ids yet,

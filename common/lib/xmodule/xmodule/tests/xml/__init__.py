@@ -33,10 +33,7 @@ class InMemorySystem(XMLParsingSystem, MakoDescriptorSystem):  # pylint: disable
             load_item=self.load_item,
             error_tracker=Mock(),
             resources_fs=xml_import_data.filesystem,
-            mixins=xml_import_data.xblock_mixins,
-            select=xml_import_data.xblock_select,
             render_template=lambda template, context: pprint.pformat((template, context)),
-            field_data=KvsFieldData(DictKeyValueStore()),
         )
 
     def process_xml(self, xml):  # pylint: disable=method-hidden

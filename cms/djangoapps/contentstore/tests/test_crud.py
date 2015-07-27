@@ -82,7 +82,7 @@ class TemplateTests(unittest.TestCase):
 
         test_chapter = persistent_factories.ItemFactory.create(
             display_name='chapter 1',
-            parent_location=test_course.location
+            parent=test_course
         )
         self.assertIsInstance(test_chapter, SequenceDescriptor)
         # refetch parent which should now point to child
@@ -174,7 +174,7 @@ class TemplateTests(unittest.TestCase):
             user_id='testbot')
         persistent_factories.ItemFactory.create(
             display_name='chapter 1',
-            parent_location=test_course.location
+            parent=test_course
         )
 
         id_locator = test_course.id.for_branch(ModuleStoreEnum.BranchName.draft)
@@ -200,17 +200,17 @@ class TemplateTests(unittest.TestCase):
         )
         chapter = persistent_factories.ItemFactory.create(
             display_name='chapter 1',
-            parent_location=test_course.location,
+            parent=test_course,
             user_id='testbot'
         )
         sub = persistent_factories.ItemFactory.create(
             display_name='subsection 1',
-            parent_location=chapter.location,
+            parent=chapter,
             user_id='testbot',
             category='vertical'
         )
         first_problem = persistent_factories.ItemFactory.create(
-            display_name='problem 1', parent_location=sub.location, user_id='testbot', category='problem',
+            display_name='problem 1', parent=sub, user_id='testbot', category='problem',
             data="<problem></problem>"
         )
         first_problem.max_attempts = 3
@@ -223,7 +223,7 @@ class TemplateTests(unittest.TestCase):
 
         second_problem = persistent_factories.ItemFactory.create(
             display_name='problem 2',
-            parent_location=sub.location.version_agnostic(),
+            parent=sub.version_agnostic(),
             user_id='testbot', category='problem',
             data="<problem></problem>"
         )

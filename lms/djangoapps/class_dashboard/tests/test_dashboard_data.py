@@ -50,7 +50,7 @@ class TestGetProblemGradeDistribution(ModuleStoreTestCase):
             display_name=u"test factory section omega \u03a9",
         )
         self.sub_section = ItemFactory.create(
-            parent_location=section.location,
+            parent=section,
             category="sequential",
             display_name=u"test subsection omega \u03a9",
         )
@@ -70,7 +70,7 @@ class TestGetProblemGradeDistribution(ModuleStoreTestCase):
         for i in xrange(USER_COUNT - 1):
             category = "problem"
             self.item = ItemFactory.create(
-                parent_location=unit.location,
+                parent=unit,
                 category=category,
                 data=StringResponseXMLFactory().build_xml(answer='foo'),
                 metadata={'rerandomize': 'always'},

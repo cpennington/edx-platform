@@ -5,6 +5,7 @@ import os
 import sys
 from lxml import etree
 
+from xblock.core import XBlock
 from xblock.fields import Dict, Scope, ScopeIds
 from xblock.runtime import KvsFieldData
 from xmodule.x_module import XModuleDescriptor, DEPRECATION_VSCOMPAT_EVENT
@@ -102,7 +103,8 @@ def deserialize_field(field, value):
         return value
 
 
-class XmlParserMixin(object):
+@XBlock.needs('import-system')
+class XmlParserMixin(XBlock):
     """
     Class containing XML parsing functionality shared between XBlock and XModuleDescriptor.
     """
@@ -250,7 +252,7 @@ class XmlParserMixin(object):
 
             definition_xml = cls.load_file(filepath, system.resources_fs, def_id)
             usage_id = id_generator.create_usage(def_id)
-            system.parse_asides(definition_xml, def_id, usage_id, id_generator)
+            system.runtime.parse_asides(definition_xml, def_id, usage_id, id_generator)
 
             # Add the attributes from the pointer node
             definition_xml.attrib.update(xml_object.attrib)
@@ -339,7 +341,7 @@ class XmlParserMixin(object):
             # new style:
             # read the actual definition file--named using url_name.replace(':','/')
             filepath = cls._format_filepath(node.tag, name_to_pathname(url_name))
-            definition_xml = cls.load_file(filepath, runtime.resources_fs, def_id)
+            definition_xml = cls.load_file(filepath, runtime.service(cls, 'import-system').resources_fs, def_id)
             runtime.parse_asides(definition_xml, def_id, usage_id, id_generator)
         else:
             filepath = None
@@ -350,7 +352,7 @@ class XmlParserMixin(object):
             )
 
         # Note: removes metadata.
-        definition, children = cls.load_definition(definition_xml, runtime, def_id, id_generator)
+        definition, children = cls.load_definition(definition_xml, runtime.service(cls, 'import-system'), def_id, id_generator)
 
         # VS[compat] -- make Ike's github preview links work in both old and
         # new file layouts
@@ -371,7 +373,7 @@ class XmlParserMixin(object):
                 metadata['definition_metadata_err'] = str(err)
 
         # Set/override any metadata specified by policy
-        cls.apply_policy(metadata, runtime.get_policy(usage_id))
+        cls.apply_policy(metadata, runtime.service(cls, 'import-system').get_policy(usage_id))
 
         field_data = {}
         field_data.update(metadata)
@@ -500,7 +502,7 @@ class XmlDescriptor(XmlParserMixin, XModuleDescriptor):  # pylint: disable=abstr
         #    b) call super(..).from_xml(..)
         return super(XmlDescriptor, cls).parse_xml(
             etree.fromstring(xml_data),  # pylint: disable=no-member
-            system,
+            system.runtime,
             None,  # This is ignored by XmlParserMixin
             id_generator,
         )

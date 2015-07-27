@@ -236,40 +236,40 @@ class LmsSearchFilterGeneratorGroupsTestCase(LmsSearchFilterGeneratorTestCase):
         )
 
         vertical = ItemFactory.create(
-            parent_location=sequential.location,
+            parent=sequential,
             category='vertical',
             display_name='Subsection 3',
             publish_item=True,
         )
 
         split_test_unit = ItemFactory.create(
-            parent_location=vertical.location,
+            parent=vertical,
             category='split_test',
             user_partition_id=0,
             display_name="Test Content Experiment 1",
         )
 
         condition_1_vertical = ItemFactory.create(
-            parent_location=split_test_unit.location,
+            parent=split_test_unit,
             category="vertical",
             display_name="Group ID 1",
         )
 
         condition_2_vertical = ItemFactory.create(
-            parent_location=split_test_unit.location,
+            parent=split_test_unit,
             category="vertical",
             display_name="Group ID 2",
         )
 
         ItemFactory.create(
-            parent_location=condition_1_vertical.location,
+            parent=condition_1_vertical,
             category="html",
             display_name="Group A",
             publish_item=True,
         )
 
         ItemFactory.create(
-            parent_location=condition_2_vertical.location,
+            parent=condition_2_vertical,
             category="html",
             display_name="Group B",
             publish_item=True,

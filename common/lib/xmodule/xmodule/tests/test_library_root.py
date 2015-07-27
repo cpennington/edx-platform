@@ -35,7 +35,7 @@ class TestLibraryRoot(MixedSplitTestCase):
         # Add one HTML block to the library:
         ItemFactory.create(
             category="html",
-            parent_location=library.location,
+            parent=library,
             user_id=self.user_id,
             publish_item=False,
             modulestore=self.store,
@@ -60,7 +60,7 @@ class TestLibraryRoot(MixedSplitTestCase):
         blocks = [
             ItemFactory.create(
                 category="html",
-                parent_location=library.location,
+                parent=library,
                 user_id=self.user_id,
                 publish_item=False,
                 modulestore=self.store,

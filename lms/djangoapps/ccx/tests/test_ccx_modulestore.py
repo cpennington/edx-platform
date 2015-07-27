@@ -26,6 +26,7 @@ class TestCCXModulestoreWrapper(ModuleStoreTestCase):
         Set up tests
         """
         super(TestCCXModulestoreWrapper, self).setUp()
+
         self.course = course = CourseFactory.create()
 
         # Create instructor account

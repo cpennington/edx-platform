@@ -9,7 +9,7 @@ from mock import Mock
 from unittest import TestCase
 from urlparse import urlparse
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
-from lms.djangoapps.lms_xblock.runtime import quote_slashes, unquote_slashes, LmsModuleSystem
+from lms.djangoapps.lms_xblock.runtime import quote_slashes, unquote_slashes, LmsRuntime
 from xblock.fields import ScopeIds
 
 TEST_STRINGS = [
@@ -46,14 +46,14 @@ class TestHandlerUrl(TestCase):
         super(TestHandlerUrl, self).setUp()
         self.block = Mock(name='block', scope_ids=ScopeIds(None, None, None, 'dummy'))
         self.course_key = SlashSeparatedCourseKey("org", "course", "run")
-        self.runtime = LmsModuleSystem(
+        self.runtime = LmsRuntime(
             static_url='/static',
             track_function=Mock(),
             get_module=Mock(),
             render_template=Mock(),
             replace_urls=str,
             course_id=self.course_key,
-            descriptor_runtime=Mock(),
+            descriptor_system=Mock(),
         )
 
     def test_trailing_characters(self):
@@ -118,7 +118,7 @@ class TestUserServiceAPI(TestCase):
             """Just returns the test user"""
             return self.user
 
-        self.runtime = LmsModuleSystem(
+        self.runtime = LmsRuntime(
             static_url='/static',
             track_function=Mock(),
             get_module=Mock(),
@@ -126,7 +126,7 @@ class TestUserServiceAPI(TestCase):
             replace_urls=str,
             course_id=self.course_id,
             get_real_user=mock_get_real_user,
-            descriptor_runtime=Mock(),
+            descriptor_system=Mock(),
         )
         self.scope = 'course'
         self.key = 'key1'

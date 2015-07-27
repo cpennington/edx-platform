@@ -129,9 +129,9 @@ class TestCourseIndex(CourseTestCase):
     def test_json_responses(self):
         outline_url = reverse_course_url('course_handler', self.course.id)
         chapter = ItemFactory.create(parent_location=self.course.location, category='chapter', display_name="Week 1")
-        lesson = ItemFactory.create(parent_location=chapter.location, category='sequential', display_name="Lesson 1")
-        subsection = ItemFactory.create(parent_location=lesson.location, category='vertical', display_name='Subsection 1')
-        ItemFactory.create(parent_location=subsection.location, category="video", display_name="My Video")
+        lesson = ItemFactory.create(parent=chapter, category='sequential', display_name="Lesson 1")
+        subsection = ItemFactory.create(parent=lesson, category='vertical', display_name='Subsection 1')
+        ItemFactory.create(parent=subsection, category="video", display_name="My Video")
 
         resp = self.client.get(outline_url, HTTP_ACCEPT='application/json')
         json_response = json.loads(resp.content)
@@ -437,7 +437,7 @@ class TestCourseOutline(CourseTestCase):
             parent_location=self.sequential.location, category='vertical', display_name='Vert1 Subsection1'
         )
         problem1 = ItemFactory.create(
-            parent_location=vertical1.location,
+            parent=vertical1,
             category='peergrading',
             display_name='peergrading problem in vert1',
             publish_item=False
@@ -452,7 +452,7 @@ class TestCourseOutline(CourseTestCase):
             parent_location=self.sequential.location, category='vertical', display_name='Vert2 Subsection1'
         )
         ItemFactory.create(
-            parent_location=vertical2.location,
+            parent=vertical2,
             category='peergrading',
             display_name='peergrading problem in vert2',
             pubish_item=True

@@ -1198,7 +1198,6 @@ class TestGradeReportEnrollmentAndCertificateInfo(TestReportMixin, InstructorTas
         args = {'choices': [False, True, False]}
         problem_xml = factory.build_xml(**args)
         ItemFactory.create(
-            parent_location=parent.location,
             parent=parent,
             category="problem",
             display_name=problem_display_name,

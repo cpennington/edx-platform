@@ -48,8 +48,10 @@ from instructor_task.subtasks import (
     check_subtask_is_valid,
     update_subtask_status,
 )
+from lms_xblock.runtime import LmsRuntime
 from util.query import use_read_replica_if_available
 from util.date_utils import get_default_time_display
+from xmodule.modulestore.django import modulestore
 
 log = logging.getLogger('edx.celery.task')
 
@@ -212,7 +214,8 @@ def perform_delegate_email_batches(entry_id, course_id, task_input, action_name)
         raise ValueError(format_msg % (course_id, email_obj.course_id))
 
     # Fetch the course object.
-    course = get_course(course_id)
+    with modulestore().xblock_runtime(LmsRuntime(request=None, user=User.objects.get(id=user_id), course_id=course_id)):
+        course = get_course(course_id)
 
     if course is None:
         msg = u"Task %s: course not found: %s"

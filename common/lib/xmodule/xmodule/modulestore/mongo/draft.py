@@ -308,7 +308,7 @@ class DraftModuleStore(MongoModuleStore):
                 else ModuleStoreEnum.RevisionOption.draft_preferred
         return super(DraftModuleStore, self).get_parent_location(location, revision, **kwargs)
 
-    def create_xblock(self, runtime, course_key, block_type, block_id=None, fields=None, **kwargs):
+    def create_xblock(self, course_key, block_type, block_id=None, fields=None, **kwargs):
         """
         Create the new xmodule but don't save it. Returns the new module with a draft locator if
         the category allows drafts. If the category does not allow drafts, just creates a published module.
@@ -320,7 +320,7 @@ class DraftModuleStore(MongoModuleStore):
         :param fields: a dictionary of field names and values for the new xmodule
         """
         new_block = super(DraftModuleStore, self).create_xblock(
-            runtime, course_key, block_type, block_id, fields, **kwargs
+            course_key=course_key, block_type=block_type, block_id=block_id, fields=fields, **kwargs
         )
         new_block.location = self.for_branch_setting(new_block.location)
         return wrap_draft(new_block)

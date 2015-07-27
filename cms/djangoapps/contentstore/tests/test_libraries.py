@@ -63,7 +63,7 @@ class LibraryTestCase(ModuleStoreTestCase):
         """
         return ItemFactory.create(
             category='library_content',
-            parent_location=course.location,
+            parent=course,
             user_id=self.user.id,
             publish_item=False,
             source_library_id=unicode(library_key),
@@ -283,7 +283,7 @@ class TestLibraries(LibraryTestCase):
         )
         child_block = ItemFactory.create(
             category="html",
-            parent_location=vert_block.location,
+            parent=vert_block,
             user_id=self.user.id,
             publish_item=False,
             display_name=name_value,
@@ -359,7 +359,7 @@ class TestLibraries(LibraryTestCase):
 
         ItemFactory.create(
             category="html",
-            parent_location=library2.location,
+            parent=library2,
             user_id=self.user.id,
             publish_item=False,
             display_name="Lib 2: HTML BLock",

@@ -115,7 +115,7 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
         Initialize a MixedModuleStore. Here we look into our passed in kwargs which should be a
         collection of other modulestore configuration information
         """
-        super(MixedModuleStore, self).__init__(contentstore, **kwargs)
+        super(MixedModuleStore, self).__init__(contentstore=contentstore, **kwargs)
 
         if create_modulestore_instance is None:
             raise ValueError('MixedModuleStore constructor must be passed a create_modulestore_instance function')
@@ -145,10 +145,10 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
                 ]
 
             store = create_modulestore_instance(
-                store_settings['ENGINE'],
-                self.contentstore,
-                store_settings.get('DOC_STORE_CONFIG', {}),
-                store_settings.get('OPTIONS', {}),
+                engine=store_settings['ENGINE'],
+                content_store=self.contentstore,
+                doc_store_config=store_settings.get('DOC_STORE_CONFIG', {}),
+                options=store_settings.get('OPTIONS', {}),
                 i18n_service=i18n_service,
                 fs_service=fs_service,
                 user_service=user_service,
@@ -710,7 +710,14 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
                 in the newly created block
         """
         modulestore = self._verify_modulestore_support(parent_usage_key.course_key, 'create_child')
-        return modulestore.create_child(user_id, parent_usage_key, block_type, block_id=block_id, fields=fields, **kwargs)
+        return modulestore.create_child(
+            user_id=user_id,
+            parent_usage_key=parent_usage_key,
+            block_type=block_type,
+            block_id=block_id,
+            fields=fields,
+            **kwargs
+        )
 
     @strip_key
     def import_xblock(self, user_id, course_key, block_type, block_id, fields=None, runtime=None, **kwargs):
@@ -778,7 +785,7 @@ class MixedModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase):
                 modulestore._drop_database()  # pylint: disable=protected-access
 
     @strip_key
-    def create_xblock(self, runtime, course_key, block_type, block_id=None, fields=None, **kwargs):
+    def create_xblock(self, course_key, block_type, block_id=None, fields=None, **kwargs):
         """
         Create the new xmodule but don't save it. Returns the new module.
 

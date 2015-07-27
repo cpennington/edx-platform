@@ -355,7 +355,7 @@ class ImportRequiredTestCases(ContentStoreTestCase):
 
         parent = verticals[0]
 
-        ItemFactory.create(parent_location=parent.location, category="video", display_name="untitled")
+        ItemFactory.create(parent=parent, category="video", display_name="untitled")
 
         root_dir = path(mkdtemp_clean())
 
@@ -381,7 +381,7 @@ class ImportRequiredTestCases(ContentStoreTestCase):
 
         parent = verticals[0]
 
-        ItemFactory.create(parent_location=parent.location, category="word_cloud", display_name="untitled")
+        ItemFactory.create(parent=parent, category="word_cloud", display_name="untitled")
 
         root_dir = path(mkdtemp_clean())
 
@@ -435,7 +435,7 @@ class ImportRequiredTestCases(ContentStoreTestCase):
         parent = verticals[0]
 
         # Create a module, and ensure that its `data` field is empty
-        word_cloud = ItemFactory.create(parent_location=parent.location, category="word_cloud", display_name="untitled")
+        word_cloud = ItemFactory.create(parent=parent, category="word_cloud", display_name="untitled")
         del word_cloud.data
         self.assertEquals(word_cloud.data, '')
 
@@ -522,7 +522,7 @@ class ImportRequiredTestCases(ContentStoreTestCase):
 
         # create OpenAssessmentBlock:
         open_assessment = ItemFactory.create(
-            parent_location=vertical.location,
+            parent=vertical,
             category="openassessment",
             display_name="untitled",
         )
@@ -1257,7 +1257,7 @@ class ContentStoreTest(ContentStoreTestCase):
     def test_item_factory(self):
         """Test that the item factory works correctly."""
         course = CourseFactory.create()
-        item = ItemFactory.create(parent_location=course.location)
+        item = ItemFactory.create(parent=course)
         self.assertIsInstance(item, SequenceDescriptor)
 
     def test_course_index_view_with_course(self):
@@ -1525,7 +1525,7 @@ class ContentStoreTest(ContentStoreTestCase):
 
     def test_default_metadata_inheritance(self):
         course = CourseFactory.create()
-        vertical = ItemFactory.create(parent_location=course.location)
+        vertical = ItemFactory.create(parent=course)
         course.children.append(vertical)
         # in memory
         self.assertIsNotNone(course.start)
@@ -1609,7 +1609,7 @@ class MetadataSaveTestCase(ContentStoreTestCase):
         </video>
         '''
         self.video_descriptor = ItemFactory.create(
-            parent_location=course.location, category='video',
+            parent=course, category='video',
             data={'data': video_sample_xml}
         )
 

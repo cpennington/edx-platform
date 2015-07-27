@@ -22,7 +22,7 @@ from django.conf import settings
 from util.json_request import JsonResponse
 from mock import patch
 
-from lms.djangoapps.lms_xblock.runtime import quote_slashes
+from lms.djangoapps.lms_xblock.runtime import quote_slashes, LmsRuntime
 from openedx.core.lib.xblock_utils import wrap_xblock
 from xmodule.html_module import HtmlDescriptor
 from xmodule.modulestore.django import modulestore
@@ -75,91 +75,92 @@ def instructor_dashboard_2(request, course_id):
         log.error(u"Unable to find course with course key %s while loading the Instructor Dashboard.", course_id)
         return HttpResponseServerError()
 
-    course = get_course_by_id(course_key, depth=0)
+    with modulestore().xblock_runtime(LmsRuntime(request, course_id=course_key)):
+        course = get_course_by_id(course_key, depth=0)
 
-    access = {
-        'admin': request.user.is_staff,
-        'instructor': bool(has_access(request.user, 'instructor', course)),
-        'finance_admin': CourseFinanceAdminRole(course_key).has_user(request.user),
-        'sales_admin': CourseSalesAdminRole(course_key).has_user(request.user),
-        'staff': bool(has_access(request.user, 'staff', course)),
-        'forum_admin': has_forum_access(request.user, course_key, FORUM_ROLE_ADMINISTRATOR),
-    }
+        access = {
+            'admin': request.user.is_staff,
+            'instructor': bool(has_access(request.user, 'instructor', course)),
+            'finance_admin': CourseFinanceAdminRole(course_key).has_user(request.user),
+            'sales_admin': CourseSalesAdminRole(course_key).has_user(request.user),
+            'staff': bool(has_access(request.user, 'staff', course)),
+            'forum_admin': has_forum_access(request.user, course_key, FORUM_ROLE_ADMINISTRATOR),
+        }
 
-    if not access['staff']:
-        raise Http404()
+        if not access['staff']:
+            raise Http404()
 
-    is_white_label = CourseMode.is_white_label(course_key)
+        is_white_label = CourseMode.is_white_label(course_key)
 
-    sections = [
-        _section_course_info(course, access),
-        _section_membership(course, access, is_white_label),
-        _section_cohort_management(course, access),
-        _section_student_admin(course, access),
-        _section_data_download(course, access),
-    ]
+        sections = [
+            _section_course_info(course, access),
+            _section_membership(course, access, is_white_label),
+            _section_cohort_management(course, access),
+            _section_student_admin(course, access),
+            _section_data_download(course, access),
+        ]
 
-    analytics_dashboard_message = None
-    if settings.ANALYTICS_DASHBOARD_URL:
-        # Construct a URL to the external analytics dashboard
-        analytics_dashboard_url = '{0}/courses/{1}'.format(settings.ANALYTICS_DASHBOARD_URL, unicode(course_key))
-        link_start = "<a href=\"{}\" target=\"_blank\">".format(analytics_dashboard_url)
-        analytics_dashboard_message = _(
-            "To gain insights into student enrollment and participation {link_start}"
-            "visit {analytics_dashboard_name}, our new course analytics product{link_end}."
-        )
-        analytics_dashboard_message = analytics_dashboard_message.format(
-            link_start=link_start, link_end="</a>", analytics_dashboard_name=settings.ANALYTICS_DASHBOARD_NAME)
+        analytics_dashboard_message = None
+        if settings.ANALYTICS_DASHBOARD_URL:
+            # Construct a URL to the external analytics dashboard
+            analytics_dashboard_url = '{0}/courses/{1}'.format(settings.ANALYTICS_DASHBOARD_URL, unicode(course_key))
+            link_start = "<a href=\"{}\" target=\"_blank\">".format(analytics_dashboard_url)
+            analytics_dashboard_message = _(
+                "To gain insights into student enrollment and participation {link_start}"
+                "visit {analytics_dashboard_name}, our new course analytics product{link_end}."
+            )
+            analytics_dashboard_message = analytics_dashboard_message.format(
+                link_start=link_start, link_end="</a>", analytics_dashboard_name=settings.ANALYTICS_DASHBOARD_NAME)
 
-        # Temporarily show the "Analytics" section until we have a better way of linking to Insights
-        sections.append(_section_analytics(course, access))
+            # Temporarily show the "Analytics" section until we have a better way of linking to Insights
+            sections.append(_section_analytics(course, access))
 
-    # Check if there is corresponding entry in the CourseMode Table related to the Instructor Dashboard course
-    course_mode_has_price = False
-    paid_modes = CourseMode.paid_modes_for_course(course_key)
-    if len(paid_modes) == 1:
-        course_mode_has_price = True
-    elif len(paid_modes) > 1:
-        log.error(
-            u"Course %s has %s course modes with payment options. Course must only have "
-            u"one paid course mode to enable eCommerce options.",
-            unicode(course_key), len(paid_modes)
-        )
+        # Check if there is corresponding entry in the CourseMode Table related to the Instructor Dashboard course
+        course_mode_has_price = False
+        paid_modes = CourseMode.paid_modes_for_course(course_key)
+        if len(paid_modes) == 1:
+            course_mode_has_price = True
+        elif len(paid_modes) > 1:
+            log.error(
+                u"Course %s has %s course modes with payment options. Course must only have "
+                u"one paid course mode to enable eCommerce options.",
+                unicode(course_key), len(paid_modes)
+            )
 
-    if settings.FEATURES.get('INDIVIDUAL_DUE_DATES') and access['instructor']:
-        sections.insert(3, _section_extensions(course))
+        if settings.FEATURES.get('INDIVIDUAL_DUE_DATES') and access['instructor']:
+            sections.insert(3, _section_extensions(course))
 
-    # Gate access to course email by feature flag & by course-specific authorization
-    if bulk_email_is_enabled_for_course(course_key):
-        sections.append(_section_send_email(course, access))
+        # Gate access to course email by feature flag & by course-specific authorization
+        if bulk_email_is_enabled_for_course(course_key):
+            sections.append(_section_send_email(course, access))
 
-    # Gate access to Metrics tab by featue flag and staff authorization
-    if settings.FEATURES['CLASS_DASHBOARD'] and access['staff']:
-        sections.append(_section_metrics(course, access))
+        # Gate access to Metrics tab by featue flag and staff authorization
+        if settings.FEATURES['CLASS_DASHBOARD'] and access['staff']:
+            sections.append(_section_metrics(course, access))
 
-    # Gate access to Ecommerce tab
-    if course_mode_has_price and (access['finance_admin'] or access['sales_admin']):
-        sections.append(_section_e_commerce(course, access, paid_modes[0], is_white_label, is_white_label))
+        # Gate access to Ecommerce tab
+        if course_mode_has_price and (access['finance_admin'] or access['sales_admin']):
+            sections.append(_section_e_commerce(course, access, paid_modes[0], is_white_label, is_white_label))
 
-    # Certificates panel
-    # This is used to generate example certificates
-    # and enable self-generated certificates for a course.
-    certs_enabled = CertificateGenerationConfiguration.current().enabled
-    if certs_enabled and access['admin']:
-        sections.append(_section_certificates(course))
+        # Certificates panel
+        # This is used to generate example certificates
+        # and enable self-generated certificates for a course.
+        certs_enabled = CertificateGenerationConfiguration.current().enabled
+        if certs_enabled and access['admin']:
+            sections.append(_section_certificates(course))
 
-    disable_buttons = not _is_small_course(course_key)
+        disable_buttons = not _is_small_course(course_key)
 
-    context = {
-        'course': course,
-        'old_dashboard_url': reverse('instructor_dashboard_legacy', kwargs={'course_id': unicode(course_key)}),
-        'studio_url': get_studio_url(course, 'course'),
-        'sections': sections,
-        'disable_buttons': disable_buttons,
-        'analytics_dashboard_message': analytics_dashboard_message
-    }
+        context = {
+            'course': course,
+            'old_dashboard_url': reverse('instructor_dashboard_legacy', kwargs={'course_id': unicode(course_key)}),
+            'studio_url': get_studio_url(course, 'course'),
+            'sections': sections,
+            'disable_buttons': disable_buttons,
+            'analytics_dashboard_message': analytics_dashboard_message
+        }
 
-    return render_to_response('instructor/instructor_dashboard_2/instructor_dashboard_2.html', context)
+        return render_to_response('instructor/instructor_dashboard_2/instructor_dashboard_2.html', context)
 
 
 ## Section functions starting with _section return a dictionary of section data.
@@ -497,11 +498,12 @@ def _section_send_email(course, access):
     with patch.object(course.runtime, 'applicable_aside_types', null_applicable_aside_types):
         # This HtmlDescriptor is only being used to generate a nice text editor.
         html_module = HtmlDescriptor(
-            course.system,
+            course.runtime,
             DictFieldData({'data': ''}),
             ScopeIds(None, None, None, course_key.make_usage_key('html', 'fake'))
         )
-        fragment = course.system.render(html_module, 'studio_view')
+        html_module.runtime.bind_descriptor_system(html_module, course.runtime.service(course, 'legacy-xmodule-descriptor-system'))
+        fragment = course.runtime.render(html_module, 'studio_view')
     fragment = wrap_xblock(
         'LmsRuntime', html_module, 'studio_view', fragment, None,
         extra_data={"course-id": unicode(course_key)},

@@ -60,7 +60,7 @@ def create_children(store, parent, category, load_factor):
     created_count = 0
     for child_index in range(load_factor):
         child_object = ItemFactory.create(
-            parent_location=parent.location,
+            parent=parent,
             category=category,
             display_name=u"{} {} {}".format(category, child_index, time.clock()),
             modulestore=store,
@@ -424,14 +424,14 @@ class TestCoursewareSearchIndexer(MixedWithOptionsTestCase):
 
         # add a new vertical
         vertical2 = ItemFactory.create(
-            parent_location=sequential2.location,
+            parent=sequential2,
             category='vertical',
             display_name='Subsection 2',
             modulestore=store,
             publish_item=True,
         )
         ItemFactory.create(
-            parent_location=vertical2.location,
+            parent=vertical2,
             category="html",
             display_name="Some other content",
             publish_item=False,
@@ -522,14 +522,14 @@ class TestCoursewareSearchIndexer(MixedWithOptionsTestCase):
         )
         # add a new vertical
         vertical2 = ItemFactory.create(
-            parent_location=sequential2.location,
+            parent=sequential2,
             category='vertical',
             display_name='Subsection 2',
             modulestore=store,
             publish_item=True,
         )
         ItemFactory.create(
-            parent_location=vertical2.location,
+            parent=vertical2,
             category="html",
             display_name="Find Me",
             publish_item=True,

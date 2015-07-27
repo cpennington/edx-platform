@@ -62,9 +62,9 @@ def i_have_populated_a_new_course(_step):
     world.clear_courses()
     course = world.CourseFactory.create()
     world.scenario_dict['COURSE'] = course
-    section = world.ItemFactory.create(parent_location=course.location)
+    section = world.ItemFactory.create(parent=course)
     world.ItemFactory.create(
-        parent_location=section.location,
+        parent=section,
         category='sequential',
         display_name='Subsection One',
     )

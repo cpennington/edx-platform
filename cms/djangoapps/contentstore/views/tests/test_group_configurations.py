@@ -53,25 +53,25 @@ class HelperMethods(object):
         c2_url = self.course.id.make_usage_key("vertical", "split_test_cond2")
         split_test = ItemFactory.create(
             category='split_test',
-            parent_location=vertical.location,
+            parent=vertical,
             user_partition_id=cid,
             display_name=u"Test Content Experiment {}{}".format(name_suffix, special_characters),
             group_id_to_child={"0": c0_url, "1": c1_url, "2": c2_url}
         )
         ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 0 vertical",
             location=c0_url,
         )
         ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 1 vertical",
             location=c1_url,
         )
         ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 2 vertical",
             location=c2_url,
@@ -100,7 +100,7 @@ class HelperMethods(object):
 
         problem = ItemFactory.create(
             category='problem',
-            parent_location=vertical.location,
+            parent=vertical,
             display_name=u"Test Problem {}{}".format(name_suffix, special_characters)
         )
 

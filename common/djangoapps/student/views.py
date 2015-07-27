@@ -43,6 +43,7 @@ from social.backends import oauth as social_oauth
 from social.exceptions import AuthException, AuthAlreadyAssociated
 
 from edxmako.shortcuts import render_to_response, render_to_string
+from lms_xblock.runtime import LmsRuntime
 
 from course_modes.models import CourseMode
 from shoppingcart.api import order_history
@@ -158,17 +159,18 @@ def index(request, extra_context=None, user=AnonymousUser()):
     if domain is False:
         domain = request.META.get('HTTP_HOST')
 
-    courses = get_courses(user, domain=domain)
-    if microsite.get_value("ENABLE_COURSE_SORTING_BY_START_DATE",
-                           settings.FEATURES["ENABLE_COURSE_SORTING_BY_START_DATE"]):
-        courses = sort_by_start_date(courses)
-    else:
-        courses = sort_by_announcement(courses)
+    with modulestore().xblock_runtime(LmsRuntime(request)):
+        courses = get_courses(user, domain=domain)
+        if microsite.get_value("ENABLE_COURSE_SORTING_BY_START_DATE",
+                            settings.FEATURES["ENABLE_COURSE_SORTING_BY_START_DATE"]):
+            courses = sort_by_start_date(courses)
+        else:
+            courses = sort_by_announcement(courses)
 
-    context = {'courses': courses}
+        context = {'courses': courses}
 
-    context.update(extra_context)
-    return render_to_response('index.html', context)
+        context.update(extra_context)
+        return render_to_response('index.html', context)
 
 
 def process_survey_link(survey_link, user):

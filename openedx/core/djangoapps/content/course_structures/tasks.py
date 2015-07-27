@@ -5,7 +5,6 @@ from celery.task import task
 from opaque_keys.edx.keys import CourseKey
 from xmodule.modulestore.django import modulestore
 
-
 log = logging.getLogger('edx.celery.task')
 
 

@@ -111,6 +111,8 @@ from opaque_keys.edx.keys import CourseKey
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
 from opaque_keys import InvalidKeyError
 from openedx.core.djangoapps.course_groups.cohorts import is_course_cohorted
+from xmodule.modulestore.django import modulestore
+from lms_xblock.runtime import LmsRuntime
 
 log = logging.getLogger(__name__)
 
@@ -234,12 +236,14 @@ def require_level(level):
     def decorator(func):  # pylint: disable=missing-docstring
         def wrapped(*args, **kwargs):  # pylint: disable=missing-docstring
             request = args[0]
-            course = get_course_by_id(CourseKey.from_string(kwargs['course_id']))
+            course_key = CourseKey.from_string(kwargs['course_id'])
+            with modulestore().xblock_runtime(LmsRuntime(request, course_id=course_key)):
+                course = get_course_by_id(course_key)
 
-            if has_access(request.user, level, course):
-                return func(*args, **kwargs)
-            else:
-                return HttpResponseForbidden()
+                if has_access(request.user, level, course):
+                    return func(*args, **kwargs)
+                else:
+                    return HttpResponseForbidden()
         return wrapped
     return decorator
 

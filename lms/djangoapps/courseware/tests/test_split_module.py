@@ -65,7 +65,7 @@ class SplitTestBase(ModuleStoreTestCase):
         that is intended to be displayed to group ``group``.
         """
         return ItemFactory.create(
-            parent_location=parent.location,
+            parent=parent,
             category="video",
             display_name="Group {} Sees This Video".format(group),
         )
@@ -76,7 +76,7 @@ class SplitTestBase(ModuleStoreTestCase):
         that is intended to be displayed to group ``group``.
         """
         return ItemFactory.create(
-            parent_location=parent.location,
+            parent=parent,
             category="problem",
             display_name="Group {} Sees This Problem".format(group),
             data="<h1>No Problem Defined Yet!</h1>",
@@ -88,7 +88,7 @@ class SplitTestBase(ModuleStoreTestCase):
         that is intended to be displayed to group ``group``.
         """
         return ItemFactory.create(
-            parent_location=parent.location,
+            parent=parent,
             category="html",
             display_name="Group {} Sees This HTML".format(group),
             data="Some HTML for group {}".format(group),
@@ -178,7 +178,7 @@ class TestVertSplitTestVert(SplitTestBase):
         c1_url = self.course.id.make_usage_key("vertical", "split_test_cond1")
 
         split_test = ItemFactory.create(
-            parent_location=vert1.location,
+            parent=vert1,
             category="split_test",
             display_name="Split test",
             user_partition_id='0',
@@ -186,7 +186,7 @@ class TestVertSplitTestVert(SplitTestBase):
         )
 
         cond0vert = ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 0 vertical",
             location=c0_url,
@@ -195,7 +195,7 @@ class TestVertSplitTestVert(SplitTestBase):
         problem0 = self._problem(cond0vert, 0)
 
         cond1vert = ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 1 vertical",
             location=c1_url,
@@ -252,7 +252,7 @@ class TestSplitTestVert(SplitTestBase):
         )
 
         cond0vert = ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 0 vertical",
             location=c0_url,
@@ -261,7 +261,7 @@ class TestSplitTestVert(SplitTestBase):
         problem0 = self._problem(cond0vert, 0)
 
         cond1vert = ItemFactory.create(
-            parent_location=split_test.location,
+            parent=split_test,
             category="vertical",
             display_name="Condition 1 vertical",
             location=c1_url,
