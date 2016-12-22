@@ -99,6 +99,13 @@ def make_parser():
     parser.add_argument(
         '--table', '-t', action="store_true", default=False,
         help="only print table")
+    parser.add_argument(
+        '--list-prs', '-l', action="store_true", default=False,
+        help="list all PRs involved in the release")
+    parser.add_argument(
+        '--message-prs', action="store", default=None,
+        help="Post a message to all PRs involved in the release"
+    )
     return parser
 
 
@@ -454,6 +461,40 @@ def generate_pr_table(start_ref, end_ref):
     return "\n".join(rows).encode("utf8")
 
 
+def generate_pr_list(start_ref, end_ref):
+    """
+    Return a UTF-8 string with links to all PRs that merged in this range.
+    """
+    pr_link = "https://github.com/edx/edx-platform/pull/{num}"
+    rows = []
+    prs = get_merged_prs(start_ref, end_ref)
+    for pull_request in prs:
+        rows.append(pr_link.format(num=pull_request))
+    return "\n".join(rows).encode("utf8")
+
+
+def message_prs(start_ref, end_ref, message):
+    """
+    Post `message` onto all PRs merged in the range `start_ref` to `end_ref`.
+    """
+    comments_url = "https://api.github.com/repos/edx/edx-platform/issues/{}/comments"
+
+    _, token = get_github_creds()
+    headers = {
+        "Authorization": "token {}".format(token),
+        "User-Agent": "edx-release",
+    }
+    for pull_request in get_merged_prs(start_ref, end_ref):
+        response = requests.post(
+            comments_url.format(pull_request),
+            headers=headers,
+            json={'body': message},
+        )
+        result = response.json()
+        if not response.ok:
+            raise requests.exceptions.RequestException(result["message"])
+
+
 @memoized
 def get_commits_not_in_prs(start_ref, end_ref):
     """
@@ -541,6 +582,14 @@ def main():
 
     if args.table:
         print(generate_pr_table(args.previous, args.current))
+        return
+    
+    if args.list_prs:
+        print(generate_pr_list(args.previous, args.current))
+        return
+    
+    if args.message_prs:
+        message_prs(args.previous, args.current, args.message_prs)
         return
 
     print("Generating stage verification email and its list of recipients. This may take around a minute...")
