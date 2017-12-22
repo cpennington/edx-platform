@@ -22,14 +22,14 @@
 
 % if not waffle_flag_enabled:
 <%block name="requirejs">
-    require(["js/factories/asset_index"], function (AssetIndexFactory) {
-        AssetIndexFactory({
-          assetCallbackUrl: "${asset_callback_url|n, js_escaped_string}",
-          uploadChunkSizeInMBs: ${chunk_size_in_mbs|n, dump_js_escaped_json},
-          maxFileSizeInMBs: ${max_file_size_in_mbs|n, dump_js_escaped_json},
-          maxFileSizeRedirectUrl: "${max_file_size_redirect_url|n, js_escaped_string}"
-        });
-    });
+    <%static:require_module module_name="js/factories/asset_index" className="AssetIndexFactory">
+        {
+            assetCallbackUrl: "${asset_callback_url|n, js_escaped_string}",
+            uploadChunkSizeInMBs: ${ chunk_size_in_mbs| n, dump_js_escaped_json },
+            maxFileSizeInMBs: ${ max_file_size_in_mbs| n, dump_js_escaped_json },
+            maxFileSizeRedirectUrl: "${max_file_size_redirect_url|n, js_escaped_string}"
+        }
+    </%static:require_module>
 </%block>
 % endif
 
@@ -57,7 +57,7 @@
         <div class="content-primary">
             % if waffle_flag_enabled:
                 <%static:studiofrontend page="AssetsPage" lang="en">
-                    {   
+                    {
                         "course": {
                             "id": "${context_course.id | n, js_escaped_string}",
                             "name": "${context_course.display_name_with_default | n, js_escaped_string}",
