@@ -1,8 +1,8 @@
 define([
-    'jquery', 'js/collections/asset', 'js/views/assets', 'jquery.fileupload'
-], function($, AssetCollection, AssetsView) {
+    'jquery', 'js/collections/asset', 'js/views/assets', 'jquery.fileupload', 'common/js/utils/page_factory'
+], function($, AssetCollection, AssetsView, invokePageFactory) {
     'use strict';
-    return function(config) {
+    function AssetIndexFactory(config) {
         var assets = new AssetCollection(),
             assetsView;
 
@@ -16,4 +16,6 @@ define([
         });
         assetsView.render();
     };
+
+    invokePageFactory(AssetIndexFactory);
 });

@@ -1125,6 +1125,9 @@ INSTALLED_APPS = [
     # DRF filters
     'django_filters',
     'cms.djangoapps.api',
+
+    # Asset management for mako templates
+    'pipeline_mako',
 ]
 
 

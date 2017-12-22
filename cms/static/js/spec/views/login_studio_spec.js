@@ -1,13 +1,14 @@
-define(['jquery', 'js/factories/login', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpers',
+define(['require', 'jquery', 'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpers',
         'common/js/components/utils/view_utils'],
-function($, LoginFactory, AjaxHelpers, ViewUtils) {
+function(require, $, AjaxHelpers, ViewUtils) {
     'use strict';
     describe('Studio Login Page', function() {
         var submitButton;
 
         beforeEach(function() {
             loadFixtures('mock/login.underscore');
-            var login_factory = new LoginFactory('/home/');
+            window.pageFactoryArguments.LoginFactory = ['/home/'];
+            require(['js/factories/login']);
             submitButton = $('#submit');
         });
 
