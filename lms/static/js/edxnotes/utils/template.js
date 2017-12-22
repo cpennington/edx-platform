@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define(['jquery', 'underscore'], function($, _) {
     /**
@@ -19,4 +18,3 @@
             loadTemplate: loadTemplate
         };
     });
-}).call(this, define || RequireJS.define);

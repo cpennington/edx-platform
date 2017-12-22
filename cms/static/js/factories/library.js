@@ -5,7 +5,7 @@ define([
 ],
 function($, _, XBlockInfo, PagedContainerPage, LibraryContainerView, ComponentTemplates, xmoduleLoader) {
     'use strict';
-    return function(componentTemplates, XBlockInfoJson, options) {
+    function LibraryFactory(componentTemplates, XBlockInfoJson, options) {
         var main_options = {
             el: $('#content'),
             model: new XBlockInfo(XBlockInfoJson, {parse: true}),
@@ -20,4 +20,6 @@ function($, _, XBlockInfo, PagedContainerPage, LibraryContainerView, ComponentTe
             view.render();
         });
     };
+
+    invokePageFactory(LibraryFactory);
 });

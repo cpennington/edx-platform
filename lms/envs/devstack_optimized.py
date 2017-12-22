@@ -34,9 +34,6 @@ TEST_ROOT = REPO_ROOT / "test_root"
 # Enable debug so that static assets are served by Django
 DEBUG = True
 
-# Set REQUIRE_DEBUG to false so that it behaves like production
-REQUIRE_DEBUG = False
-
 # Fetch static files out of the pipeline's static root
 STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
 

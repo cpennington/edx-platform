@@ -6,7 +6,6 @@ from django.core.files.storage import get_storage_class
 from django.utils.lru_cache import lru_cache
 from django_pipeline_forgiving.storages import PipelineForgivingStorage
 from pipeline.storage import NonPackagingMixin
-from require.storage import OptimizedFilesMixin
 from storages.backends.s3boto import S3BotoStorage
 
 from openedx.core.djangoapps.theming.storage import ThemeCachedFilesMixin, ThemePipelineMixin, ThemeStorage
@@ -14,7 +13,6 @@ from openedx.core.djangoapps.theming.storage import ThemeCachedFilesMixin, Theme
 
 class ProductionStorage(
         PipelineForgivingStorage,
-        OptimizedFilesMixin,
         ThemePipelineMixin,
         ThemeCachedFilesMixin,
         ThemeStorage,

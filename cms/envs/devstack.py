@@ -129,11 +129,6 @@ FEATURES['CERTIFICATES_HTML_VIEW'] = True
 ########################## AUTHOR PERMISSION #######################
 FEATURES['ENABLE_CREATOR_GROUP'] = False
 
-################################# DJANGO-REQUIRE ###############################
-
-# Whether to run django-require in debug mode.
-REQUIRE_DEBUG = DEBUG
-
 ########################### OAUTH2 #################################
 OAUTH_OIDC_ISSUER = 'http://127.0.0.1:8000/oauth2'
 

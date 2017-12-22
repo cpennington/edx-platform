@@ -10,7 +10,7 @@ var options = {
 
     includeCommonFiles: true,
 
-    // Avoid adding files to this list. Use RequireJS.
+    // Avoid adding files to this list. Use
     libraryFilesToInclude: [
         {pattern: '../../common/static/common/js/vendor/jquery.js', included: true},
         {pattern: '../../common/static/common/js/vendor/jquery-migrate.js', included: true},

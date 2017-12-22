@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define(['jquery', 'underscore', 'annotator_1.2.9'], function($, _, Annotator) {
     /**
@@ -64,4 +63,3 @@
             }
         });
     });
-}).call(this, define || RequireJS.define);

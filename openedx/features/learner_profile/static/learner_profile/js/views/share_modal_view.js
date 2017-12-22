@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(
@@ -52,4 +51,3 @@
 
             return ShareModalView;
         });
-}).call(this, define || RequireJS.define);

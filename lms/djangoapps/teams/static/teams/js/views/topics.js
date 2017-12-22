@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'gettext',
@@ -44,4 +43,3 @@
         });
         return TopicsView;
     });
-}).call(this, define || RequireJS.define);

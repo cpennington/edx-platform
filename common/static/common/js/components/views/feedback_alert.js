@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'underscore', 'underscore.string', 'common/js/components/views/feedback'],
         function($, _, str, SystemFeedbackView) {
@@ -38,4 +37,3 @@
 
             return Alert;
         });
-}).call(this, define || RequireJS.define);

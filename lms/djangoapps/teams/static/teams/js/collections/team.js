@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['teams/js/collections/base', 'teams/js/models/team', 'gettext'],
         function(BaseCollection, TeamModel, gettext) {
@@ -46,4 +45,3 @@
             });
             return TeamCollection;
         });
-}).call(this, define || RequireJS.define);

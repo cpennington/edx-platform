@@ -1,4 +1,3 @@
-(function(define) {
     define(
 'video/00_sjson.js',
 [],
@@ -112,5 +111,4 @@ function() {
 
     return Sjson;
 });
-}(RequireJS.define));
 

@@ -19,7 +19,6 @@ from django.utils.http import urlquote_plus
 from django.utils.translation import ugettext as _
 from django.utils.translation import get_language_bidi
 from openedx.core.djangolib.js_utils import dump_js_escaped_json, js_escaped_string
-from pipeline_mako import render_require_js_path_overrides
 
 %>
 <!DOCTYPE html>
@@ -84,26 +83,15 @@ from pipeline_mako import render_require_js_path_overrides
     <%static:js group='application'/>
   % endif
 
+  <!-- before webpack -->
   <%static:webpack entry="commons"/>
+  <!-- after webpack -->
 
   % if uses_bootstrap:
     ## xss-lint: disable=mako-invalid-js-filter
     <script type="text/javascript" src="${static.url('common/js/vendor/popper.js')}"></script>
     <script type="text/javascript" src="${static.url('common/js/vendor/bootstrap.js')}"></script>
   % endif
-
-  <script>
-    window.baseUrl = "${settings.STATIC_URL | n, js_escaped_string}";
-    (function (require) {
-      require.config({
-          baseUrl: window.baseUrl
-      });
-    }).call(this, require || RequireJS.require);
-  </script>
-  <script type="text/javascript" src="${static.url("lms/js/require-config.js")}"></script>
-  <%block name="js_overrides">
-    ${render_require_js_path_overrides(settings.REQUIRE_JS_PATH_OVERRIDES) | n, decode.utf8}
-  </%block>
 
   % if not disable_courseware_js:
     <%static:js group='module-js'/>
@@ -154,7 +142,7 @@ from pipeline_mako import render_require_js_path_overrides
     % endif
 
     <%include file="/page_banner.html" />
-    
+
     <div class="marketing-hero"><%block name="marketing_hero"></%block></div>
 
     <div class="content-wrapper main-container" id="content">

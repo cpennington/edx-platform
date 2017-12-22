@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define(['gettext', 'underscore', 'jquery', 'backbone', 'js/edxnotes/utils/template'],
 function(gettext, _, $, Backbone, templateUtils) {
@@ -54,4 +53,3 @@ function(gettext, _, $, Backbone, templateUtils) {
 
     return TabItemView;
 });
-}).call(this, define || RequireJS.define);

@@ -14,7 +14,6 @@
  *
  */
 
-(function(define) {
     'use strict';
 
     define([
@@ -92,4 +91,3 @@
         };
         return DateUtilFactory;
     });
-}).call(this, define || RequireJS.define);

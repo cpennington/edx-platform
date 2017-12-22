@@ -1,7 +1,6 @@
 /**
  * Use the shopping cart to purchase courses.
  */
-(function(define) {
     'use strict';
     define(['jquery', 'jquery.cookie'], function($) {
         var ShoppingCartInterface = {
@@ -41,4 +40,3 @@
 
         return ShoppingCartInterface;
     });
-}).call(this, define || RequireJS.define);

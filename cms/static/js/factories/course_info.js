@@ -3,7 +3,7 @@ define([
     'js/models/course_info', 'js/views/course_info_edit'
 ], function($, CourseUpdateCollection, ModuleInfoModel, CourseInfoModel, CourseInfoEditView) {
     'use strict';
-    return function(updatesUrl, handoutsLocator, baseAssetUrl, push_notification_enabled) {
+    function CourseInfoFactory(updatesUrl, handoutsLocator, baseAssetUrl, push_notification_enabled) {
         var course_updates = new CourseUpdateCollection(),
             course_handouts, editor;
 
@@ -23,4 +23,6 @@ define([
         });
         editor.render();
     };
+
+    invokePageFactory(CourseInfoFactory);
 });

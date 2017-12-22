@@ -23,14 +23,14 @@ from openedx.core.djangolib.js_utils import (
 </%block>
 
 <%block name="requirejs">
-  require(["js/factories/course_info"], function(CourseInfoFactory) {
-      CourseInfoFactory(
+  <%static:require_module module_name="js/factories/course_info" class_name="CourseInfoFactory">
+      [
         "${updates_url | n, js_escaped_string}",
         "${handouts_locator | n, js_escaped_string}",
         "${base_asset_url | n, js_escaped_string}",
         ${push_notification_enabled | n, dump_js_escaped_json}
-       );
-  });
+      ]
+  </%static:require_module>
 </%block>
 
 <%block name="content">

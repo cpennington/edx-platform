@@ -1,7 +1,6 @@
 /**
  * A generic header view class.
  */
-(function(define) {
     'use strict';
     define(['backbone', 'text!templates/components/header/header.underscore'],
            function(Backbone, headerTemplate) {
@@ -25,4 +24,3 @@
 
                return HeaderView;
            });
-}).call(this, define || RequireJS.define);

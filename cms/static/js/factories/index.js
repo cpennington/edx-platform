@@ -1,6 +1,6 @@
 define(['jquery.form', 'js/index'], function() {
     'use strict';
-    return function() {
+    function IndexFactory() {
         // showing/hiding creation rights UI
         $('.show-creationrights').click(function(e) {
             e.preventDefault();
@@ -38,4 +38,6 @@ define(['jquery.form', 'js/index'], function() {
                 .text('Submitting Your Request');
         });
     };
+
+    IndexFactory();
 });

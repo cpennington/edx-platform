@@ -26,7 +26,8 @@ from openedx.core.djangolib.js_utils import dump_js_escaped_json, js_escaped_str
 <%block name="js_extra">
 <%include file="_js_body_dependencies.html" />
 <%static:require_module module_name="discussion/js/discussion_profile_page_factory" class_name="DiscussionProfilePageFactory">
-    profile_page_context = {
+    {
+        el: $('.discussion-user-profile-board'),
         'courseSettings': ${course_settings | n, dump_js_escaped_json},
         'courseId': '${unicode(course.id) | n, js_escaped_string}',
         'courseName': '${course.display_name_with_default | n, js_escaped_string}',
@@ -38,13 +39,6 @@ from openedx.core.djangolib.js_utils import dump_js_escaped_json, js_escaped_str
         'sortPreference': '${sort_preference | n, js_escaped_string}',
         'numPages': ${num_pages | n, dump_js_escaped_json}
     }
-
-    DiscussionProfilePageFactory(_.extend(
-        {
-            el: $('.discussion-user-profile-board')
-        },
-        profile_page_context
-    ));
 </%static:require_module>
 </%block>
 

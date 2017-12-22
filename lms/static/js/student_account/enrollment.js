@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'jquery.cookie'], function($) {
         var EnrollmentInterface = {
@@ -61,4 +60,3 @@
 
         return EnrollmentInterface;
     });
-}).call(this, define || RequireJS.define);

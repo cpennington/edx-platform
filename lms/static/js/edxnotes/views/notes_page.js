@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'backbone', 'js/edxnotes/collections/tabs', 'js/edxnotes/views/tabs_list',
@@ -68,4 +67,3 @@
 
         return NotesPageView;
     });
-}).call(this, define || RequireJS.define);

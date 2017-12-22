@@ -11,7 +11,7 @@ var options = {
     useRequireJs: false,
     includeCommonFiles: true,
 
-    // Avoid adding files to this list. Use RequireJS.
+    // Avoid adding files to this list. Use
     libraryFilesToInclude: [
         {pattern: 'common/js/vendor/require.js', included: true},
         {pattern: 'js/RequireJS-namespace-undefine.js', included: true},

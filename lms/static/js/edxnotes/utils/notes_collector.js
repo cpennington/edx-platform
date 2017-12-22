@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'underscore', 'annotator_1.2.9'], function($, _, Annotator) {
         var cleanup,
@@ -110,4 +109,3 @@
             cleanup: cleanup
         };
     });
-}).call(this, define || RequireJS.define);

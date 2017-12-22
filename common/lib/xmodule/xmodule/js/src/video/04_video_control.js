@@ -156,4 +156,4 @@ function() {
         this.videoControl.vidTimeEl.html(Time.format(params.time) + ' / ' + Time.format(endTime));
     }
 });
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define));
+}(requirejs, require, define));

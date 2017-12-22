@@ -14,7 +14,7 @@ var options = {
         return path.join(appRoot, '/common/static/' + pattern);
     },
 
-    // Avoid adding files to this list. Use RequireJS.
+    // Avoid adding files to this list. Use
     libraryFilesToInclude: [
         {pattern: 'coffee/src/ajax_prefix.js', included: true},
         {pattern: 'js/vendor/draggabilly.js', included: true},

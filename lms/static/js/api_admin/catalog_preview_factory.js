@@ -1,8 +1,7 @@
-(function(define) {
     'use strict';
 
     define(['js/api_admin/views/catalog_preview'], function(CatalogPreviewView) {
-        return function(options) {
+        function CatalogPreviewFactory(options) {
             var view = new CatalogPreviewView({
                 el: '.catalog-body',
                 previewUrl: options.previewUrl,
@@ -10,5 +9,6 @@
             });
             return view.render();
         };
+
+        invokePageFactory(CatalogPreviewFactory);
     });
-}).call(this, define || RequireJS.define);

@@ -167,4 +167,4 @@
             oldVideo(null, true);
         }
     );
-}(window.RequireJS.require, window.jQuery));
+}(window.require, window.jQuery));

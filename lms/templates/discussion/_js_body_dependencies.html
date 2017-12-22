@@ -29,7 +29,7 @@ discussion_classes = [
 %>
 <script type="text/javascript">
     % for discussion_class in discussion_classes:
-        RequireJS.define(
+        define(
             '${discussion_class[1] | n, js_escaped_string}',
             [],
             function() {

@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'js/edxnotes/views/tab_panel', 'js/edxnotes/views/tab_view'
@@ -30,4 +29,3 @@
 
         return RecentActivityView;
     });
-}).call(this, define || RequireJS.define);

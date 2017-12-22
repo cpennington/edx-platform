@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define('video/09_save_state_plugin.js', [], function() {
     /**
@@ -120,4 +119,3 @@
 
         return SaveStatePlugin;
     });
-}(RequireJS.define));

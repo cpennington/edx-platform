@@ -893,4 +893,4 @@ function(HTML5Video, HTML5HLSVideo, Resizer, HLS, _) {
         this.videoPlayer.player.setVolume(volume);
     }
 });
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define));
+}(requirejs, require, define));

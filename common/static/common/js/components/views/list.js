@@ -1,7 +1,6 @@
 /**
  * Generic view to render a collection.
  */
-(function(define) {
     'use strict';
     define(['backbone', 'underscore'], function(Backbone, _) {
         var ListView = Backbone.View.extend({
@@ -49,4 +48,3 @@
         });
         return ListView;
     });
-}).call(this, define || RequireJS.define);

@@ -351,4 +351,4 @@ function(_) {
     // HTML5Video object - what this module exports.
     return HTML5Video;
 });
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define));
+}(requirejs, require, define));

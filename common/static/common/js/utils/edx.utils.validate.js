@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'jquery',
@@ -184,4 +183,3 @@
 
             return utils;
         });
-}).call(this, define || RequireJS.define);

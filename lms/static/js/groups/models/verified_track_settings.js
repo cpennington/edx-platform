@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['backbone'], function(Backbone) {
         var VerifiedTrackSettingsModel = Backbone.Model.extend({
@@ -9,4 +8,3 @@
         });
         return VerifiedTrackSettingsModel;
     });
-}).call(this, define || RequireJS.define);

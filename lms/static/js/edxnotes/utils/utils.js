@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([], function($, _) {
     /**
@@ -21,4 +20,3 @@
             nl2br: nl2br
         };
     });
-}).call(this, define || RequireJS.define);

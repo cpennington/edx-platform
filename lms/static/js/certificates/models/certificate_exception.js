@@ -1,7 +1,6 @@
 // Backbone.js Application Model: CertificateWhitelist
 /* global define, RequireJS */
 
-(function(define) {
     'use strict';
 
     define([
@@ -35,4 +34,3 @@
             });
         }
     );
-}).call(this, define || RequireJS.define);

@@ -1,7 +1,6 @@
 /**
  * Model for a topic.
  */
-(function(define) {
     'use strict';
     define(['backbone'], function(Backbone) {
         var Topic = Backbone.Model.extend({
@@ -18,4 +17,3 @@
         });
         return Topic;
     });
-}).call(this, define || RequireJS.define);

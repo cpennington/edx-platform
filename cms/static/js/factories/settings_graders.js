@@ -2,7 +2,7 @@ define([
     'jquery', 'js/views/settings/grading', 'js/models/settings/course_grading_policy'
 ], function($, GradingView, CourseGradingPolicyModel) {
     'use strict';
-    return function(courseDetails, gradingUrl) {
+    function SettingsGradersFactory(courseDetails, gradingUrl) {
         var model, editor;
 
         $('form :input')
@@ -21,4 +21,6 @@ define([
         });
         editor.render();
     };
+
+    invokePageFactory(SettingsGradersFactory);
 });

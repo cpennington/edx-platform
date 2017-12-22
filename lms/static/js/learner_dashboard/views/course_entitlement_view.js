@@ -2,11 +2,10 @@
 // The issue is that bootstrap tries to access Popper's global Popper object which is not initialized on loading
 // from the karma configuration. The next version of bootstrap (>v4.2) will solve this issue.
 // Once this is resolved, we should import bootstrap through require-config.js and main.js (for jasmine testing)
-var defineFn = require || RequireJS.require;  // eslint-disable-line global-require
+var defineFn = require || require;  // eslint-disable-line global-require
 var Popper = defineFn(['common/js/vendor/popper']);
 defineFn(['common/js/vendor/bootstrap']);
 
-(function(define) {
     'use strict';
 
     define(['backbone',
@@ -396,4 +395,3 @@ defineFn(['common/js/vendor/bootstrap']);
              });
          }
     );
-}).call(this, define || RequireJS.define);

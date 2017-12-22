@@ -1,7 +1,6 @@
 // Backbone Application View: CertificateInvalidationView
 /* global define, RequireJS */
 
-(function(define) {
     'use strict';
     define(
         ['jquery', 'underscore', 'gettext', 'backbone', 'js/certificates/models/certificate_invalidation'],
@@ -125,4 +124,3 @@
             });
         }
     );
-}).call(this, define || RequireJS.define);

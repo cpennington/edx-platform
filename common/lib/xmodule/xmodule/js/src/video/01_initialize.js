@@ -851,4 +851,4 @@ function(VideoPlayer, i18n, moment, _) {
         return true;
     }
 });
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define));
+}(requirejs, require, define));

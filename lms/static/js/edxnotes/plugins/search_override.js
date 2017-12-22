@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(['annotator_1.2.9'], function(Annotator) {
@@ -10,4 +9,3 @@
             // Do Nothing
         };
     });
-}).call(this, define || RequireJS.define);

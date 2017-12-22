@@ -317,4 +317,4 @@
     }); // End-of: define('PollMain', [], function () {
 
 // End-of: (function (requirejs, require, define) {
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define));
+}(requirejs, require, define));

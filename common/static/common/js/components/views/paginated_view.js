@@ -14,7 +14,6 @@
  * will be used to connect each card's title with the header text via
  * the ARIA describedby attribute.
  */
-(function(define) {
     'use strict';
     define([
         'backbone',
@@ -83,4 +82,3 @@
 
         return PaginatedView;
     });
-}).call(this, define || RequireJS.define);

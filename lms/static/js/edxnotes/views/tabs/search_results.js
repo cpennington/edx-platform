@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'jquery', 'underscore', 'gettext', 'js/edxnotes/views/tab_panel', 'js/edxnotes/views/tab_view',
@@ -151,4 +150,3 @@
 
         return SearchResultsView;
     });
-}).call(this, define || RequireJS.define);

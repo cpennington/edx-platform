@@ -293,7 +293,7 @@ var edx = edx || {};
             if (_.isEmpty(start) && !_.isEmpty(due)) {
                 errorMessage = gettext('Please enter valid start date and time.');
             } else if (!_.isEmpty(start) && !_.isEmpty(due)) {
-                var requirejs = window.require || RequireJS.require;
+                var requirejs = window.require || require;
                 var moment = requirejs('moment');
                 var parsedDueDate = moment(due, 'YYYY-MM-DD HH:mm');
                 var parsedStartDate = moment(start, 'YYYY-MM-DD HH:mm');

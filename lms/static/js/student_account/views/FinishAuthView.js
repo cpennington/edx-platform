@@ -23,7 +23,6 @@
  * - The specified 'nextUrl' if safe, or
  * - The dashboard
  */
-(function(define, undefined) {
     'use strict';
     define([
         'jquery',
@@ -173,4 +172,3 @@
         });
         return FinishAuthView;
     });
-}).call(this, define || RequireJS.define);

@@ -1,5 +1,4 @@
 /* globals DiscussionThreadView */
-(function(define) {
     'use strict';
 
     define([
@@ -83,4 +82,3 @@
 
             return DiscussionUserProfileView;
         });
-}).call(this, define || RequireJS.define);

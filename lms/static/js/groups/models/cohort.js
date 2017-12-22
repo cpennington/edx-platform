@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['backbone'], function(Backbone) {
         var CohortModel = Backbone.Model.extend({
@@ -24,4 +23,3 @@
         });
         return CohortModel;
     });
-}).call(this, define || RequireJS.define);

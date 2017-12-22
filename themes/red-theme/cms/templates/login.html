@@ -51,7 +51,7 @@ from django.utils.translation import ugettext as _
 </%block>
 
 <%block name="requirejs">
-  require(["js/factories/login"], function(LoginFactory) {
+  <%static:require_module module_name="js/factories/login" class_name="LoginFactory">
       LoginFactory("${reverse('homepage')}");
-  });
+  </%static:require_module>
 </%block>

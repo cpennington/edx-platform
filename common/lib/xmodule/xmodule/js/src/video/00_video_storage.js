@@ -99,4 +99,4 @@ function() {
 
     return VideoStorage;
 });
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define));
+}(requirejs, require, define));

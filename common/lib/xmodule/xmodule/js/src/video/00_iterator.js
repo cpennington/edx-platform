@@ -1,4 +1,3 @@
-(function(define) {
     define(
 'video/00_iterator.js',
 [],
@@ -86,5 +85,4 @@ function() {
 
     return Iterator;
 });
-}(RequireJS.define));
 

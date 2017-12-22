@@ -12,7 +12,7 @@ var SEEN_COMPLETABLES = new Set();
 
 window.VerticalStudentView = function(runtime, element) {
     'use strict';
-    RequireJS.require(['course_bookmarks/js/views/bookmark_button'], function(BookmarkButton) {
+    require(['course_bookmarks/js/views/bookmark_button'], function(BookmarkButton) {
         var $element = $(element);
         var $bookmarkButtonElement = $element.find('.bookmark-button');
 

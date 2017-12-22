@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'backbone',
@@ -9,4 +8,3 @@
             model: CourseCard
         });
     });
-}).call(this, define || RequireJS.define);

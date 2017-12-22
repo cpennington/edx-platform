@@ -686,8 +686,7 @@ class DiscussionBoardFragmentView(EdxFragmentView):
             fragment = Fragment(html)
             self.add_fragment_resource_urls(fragment)
             fragment.add_javascript(inline_js)
-            if not settings.REQUIRE_DEBUG:
-                fragment.add_javascript_url(staticfiles_storage.url('discussion/js/discussion_board_factory.js'))
+            fragment.add_javascript_url(staticfiles_storage.url('discussion/js/discussion_board_factory.js'))
             return fragment
         except cc.utils.CommentClientMaintenanceError:
             log.warning('Forum is in maintenance mode')

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'underscore', 'backbone', 'gettext'], function($, _, Backbone, gettext) {
         var CourseCohortSettingsNotificationView = Backbone.View.extend({
@@ -26,4 +25,3 @@
         });
         return CourseCohortSettingsNotificationView;
     });
-}).call(this, define || RequireJS.define);

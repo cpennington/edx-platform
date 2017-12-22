@@ -19,4 +19,4 @@ Helper function used to require files serially instead of concurrently.
     window.requireSerial = function(paths, callback) {
         requireModules(paths, callback, []);
     };
-}).call(this, window, require || RequireJS.require);
+}).call(this, window, require || require);

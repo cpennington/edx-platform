@@ -7,36 +7,7 @@ from django.conf import settings
 from django.test import TestCase
 from paver.easy import call_task
 
-from pipeline_mako import compressed_css, compressed_js, render_require_js_path_overrides
-
-
-class RequireJSPathOverridesTest(TestCase):
-    """Test RequireJS path overrides. """
-
-    OVERRIDES = {
-        'jquery': 'common/js/vendor/jquery.js',
-        'backbone': 'common/js/vendor/backbone.js',
-        'text': 'js/vendor/text.js'
-    }
-
-    OVERRIDES_JS = [
-        "<script type=\"text/javascript\">",
-        "(function (require) {",
-        "require.config({",
-        "paths: {",
-        "'jquery': 'common/js/vendor/jquery',",
-        "'text': 'js/vendor/text',",
-        "'backbone': 'common/js/vendor/backbone'",
-        "}",
-        "});",
-        "}).call(this, require || RequireJS.require);",
-        "</script>"
-    ]
-
-    def test_requirejs_path_overrides(self):
-        result = render_require_js_path_overrides(self.OVERRIDES)
-        # To make the string comparision easy remove the whitespaces
-        self.assertEqual(map(str.strip, result.splitlines()), self.OVERRIDES_JS)
+from pipeline_mako import compressed_css, compressed_js
 
 
 @ddt.ddt

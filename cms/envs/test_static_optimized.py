@@ -25,9 +25,6 @@ DATABASES = {
 
 ######################### PIPELINE ####################################
 
-# Use RequireJS optimized storage
-STATICFILES_STORAGE = 'openedx.core.lib.django_require.staticstorage.OptimizedCachedRequireJsStorage'
-
 # Revert to the default set of finders as we don't want to dynamically pick up files from the pipeline
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -42,11 +39,6 @@ LOG_DIR = (TEST_ROOT / "log").abspath()
 # Store the static files under test root so that they don't overwrite existing static assets
 STATIC_ROOT = (TEST_ROOT / "staticfiles" / "cms").abspath()
 WEBPACK_LOADER['DEFAULT']['STATS_FILE'] = STATIC_ROOT / "webpack-stats.json"
-
-# Disable uglify when tests are running (used by build.js).
-# 1. Uglify is by far the slowest part of the build process
-# 2. Having full source code makes debugging tests easier for developers
-os.environ['REQUIRE_BUILD_PROFILE_OPTIMIZE'] = 'none'
 
 ########################## Derive Any Derived Settings  #######################
 

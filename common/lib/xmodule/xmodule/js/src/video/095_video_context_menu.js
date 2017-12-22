@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 // VideoContextMenu module.
     define(
@@ -665,4 +664,3 @@ function(Component) {
         return $.Deferred().resolve().promise();
     };
 });
-}(RequireJS.define));

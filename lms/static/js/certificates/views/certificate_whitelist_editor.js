@@ -1,7 +1,6 @@
 // Backbone Application View: CertificateWhiteList Editor View
 /* global define, RequireJS */
 
-(function(define) {
     'use strict';
     define([
         'jquery',
@@ -117,4 +116,3 @@
             });
         }
     );
-}).call(this, define || RequireJS.define);

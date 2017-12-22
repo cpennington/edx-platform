@@ -22,12 +22,12 @@
 </%block>
 
 <%block name="requirejs">
-    require(["js/factories/settings_advanced"], function(SettingsAdvancedFactory) {
-        SettingsAdvancedFactory(
+    <%static:require_module module_name="js/factories/settings_advanced" class_name="SettingsAdvancedFactory">
+        [
             ${advanced_dict | n, dump_js_escaped_json},
             "${advanced_settings_url | n, js_escaped_string}"
-        );
-    });
+        ]
+    </%static:require_module>
 </%block>
 
 <%block name="content">

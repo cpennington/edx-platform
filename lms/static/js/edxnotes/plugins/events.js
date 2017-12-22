@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'underscore', 'annotator_1.2.9'
@@ -179,4 +178,3 @@
             }
         });
     });
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define([
@@ -73,4 +72,3 @@
         });
         return EnrollmentModal;
     });
-}).call(this, define || RequireJS.define);

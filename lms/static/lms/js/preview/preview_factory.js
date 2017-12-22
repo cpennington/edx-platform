@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(['jquery', 'common/js/components/utils/view_utils'],
@@ -74,4 +73,3 @@
                 }
             };
         });
-}).call(this, define || RequireJS.define);

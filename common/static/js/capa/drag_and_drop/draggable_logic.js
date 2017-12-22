@@ -393,4 +393,4 @@
             }
         }; // End-of: return {
     }); // End-of: define(['update_input', 'targets'], function (updateInput, Targets) {
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define)); // End-of: (function (requirejs, require, define) {
+}(requirejs, require, define)); // End-of: (function (requirejs, require, define) {

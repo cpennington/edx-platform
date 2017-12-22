@@ -108,9 +108,6 @@ STATICFILES_FINDERS = [
 # Disable JavaScript compression in development
 PIPELINE_JS_COMPRESSOR = None
 
-# Whether to run django-require in debug mode.
-REQUIRE_DEBUG = DEBUG
-
 PIPELINE_SASS_ARGUMENTS = '--debug-info'
 
 # Load development webpack donfiguration

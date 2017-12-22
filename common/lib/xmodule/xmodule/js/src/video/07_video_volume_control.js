@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 // VideoVolumeControl module.
     define(
@@ -545,4 +544,3 @@ function(HtmlUtils) {
 
     return VolumeControl;
 });
-}(RequireJS.define));

@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'jquery', 'underscore', 'backbone',
@@ -697,4 +696,3 @@
 
         return FieldViews;
     });
-}).call(this, define || RequireJS.define);

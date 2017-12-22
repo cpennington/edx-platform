@@ -4,6 +4,7 @@
 from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 %>
+<%namespace name='static' file='static_content.html'/>
 
 <%block name="title">${_("Sign Up")}</%block>
 <%block name="bodyclass">not-signedin view-signup</%block>
@@ -109,7 +110,5 @@ from django.core.urlresolvers import reverse
 </%block>
 
 <%block name="requirejs">
-    require(["js/factories/register"], function (RegisterFactory) {
-        RegisterFactory();
-    });
+    <%static:webpack entry="js/factories/register"/>
 </%block>

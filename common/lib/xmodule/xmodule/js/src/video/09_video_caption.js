@@ -1,4 +1,3 @@
-(function(define) {
 // VideoCaption module.
     'use strict';
 
@@ -1334,4 +1333,3 @@
 
         return VideoCaption;
     });
-}(RequireJS.define));

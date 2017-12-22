@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'jquery', 'underscore', 'backbone', 'gettext',
@@ -104,4 +103,3 @@
             VisibilityDecorator: VisibilityDecorator
         };
     });
-}).call(this, define || RequireJS.define);

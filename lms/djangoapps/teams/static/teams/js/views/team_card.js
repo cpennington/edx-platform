@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'jquery',
@@ -131,4 +130,3 @@
         });
         return TeamCardView;
     });
-}).call(this, define || RequireJS.define);

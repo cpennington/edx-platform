@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['edx-ui-toolkit/js/pagination/paging-collection'],
         function(PagingCollection) {
@@ -51,4 +50,3 @@
             });
             return BaseCollection;
         });
-}).call(this, define || RequireJS.define);

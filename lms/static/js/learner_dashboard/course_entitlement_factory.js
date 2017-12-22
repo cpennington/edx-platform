@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define([
@@ -9,4 +8,3 @@
             return new EntitlementView(options);
         };
     });
-}).call(this, define || RequireJS.define);

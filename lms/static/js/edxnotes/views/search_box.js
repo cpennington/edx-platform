@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'jquery',
@@ -165,4 +164,3 @@
 
         return SearchBoxView;
     });
-}).call(this, define || RequireJS.define);

@@ -1,7 +1,6 @@
 // Backbone.js Page Object Factory: Certificates
 /* global define, RequireJS */
 
-(function(define) {
     'use strict';
     define([
         'jquery',
@@ -40,4 +39,3 @@
             };
         }
     );
-}).call(this, define || RequireJS.define);

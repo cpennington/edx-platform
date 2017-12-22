@@ -35,13 +35,13 @@ CMS.URL.UPLOAD_ASSET = '${upload_asset_url | n, js_escaped_string}'
 </%block>
 
 <%block name="requirejs">
-    require(["js/factories/settings"], function(SettingsFactory) {
-        SettingsFactory(
+    <%static:require_module module_name="js/factories/settings" class_name="SettingsFactory">
+        [
             "${details_url | n, js_escaped_string}",
             ${show_min_grade_warning | n, dump_js_escaped_json},
             ${can_show_certificate_available_date_field(context_course) | n, dump_js_escaped_json}
-        );
-    });
+        ]
+    </%static:require_module>
 </%block>
 
 <%block name="content">

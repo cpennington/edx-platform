@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'backbone'],
         function($, Backbone) {
@@ -35,4 +34,3 @@
                 }
             });
         });
-}).call(this, define || RequireJS.define);

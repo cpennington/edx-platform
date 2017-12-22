@@ -1,4 +1,3 @@
-(function(define) {
     define(['backbone', 'js/discovery/models/filter'], function(Backbone, Filter) {
         'use strict';
 
@@ -12,4 +11,3 @@
             }
         });
     });
-})(define || RequireJS.define);

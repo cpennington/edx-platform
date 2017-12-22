@@ -1,13 +1,13 @@
-(function(define) {
     'use strict';
 
     define([
         'js/learner_dashboard/views/unenroll_view'
     ],
     function(UnenrollView) {
-        return function(options) {
+        function UnenrollmentFactory(options) {
             var Unenroll = new UnenrollView(options);
             return Unenroll;
         };
+
+        invokePageFactory(UnenrollmentFactory);
     });
-}).call(this, define || RequireJS.define);

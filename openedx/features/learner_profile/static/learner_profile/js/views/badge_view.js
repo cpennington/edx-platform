@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(
@@ -43,4 +42,3 @@
 
             return BadgeView;
         });
-}).call(this, define || RequireJS.define);

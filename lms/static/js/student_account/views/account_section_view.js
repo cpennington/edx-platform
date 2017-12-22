@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext',
@@ -38,4 +37,3 @@
 
         return AccountSectionView;
     });
-}).call(this, define || RequireJS.define);

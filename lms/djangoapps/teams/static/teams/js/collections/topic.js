@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['underscore', 'gettext', 'teams/js/collections/base', 'teams/js/models/topic'],
         function(_, gettext, BaseCollection, TopicModel) {
@@ -35,4 +34,3 @@
             });
             return TopicCollection;
         });
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(['jquery', 'logger', 'moment'],
@@ -48,4 +47,3 @@
                 });
             };
         });
-})(define || RequireJS.define);

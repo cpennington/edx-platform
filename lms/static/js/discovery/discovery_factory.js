@@ -1,11 +1,10 @@
-(function(define) {
     'use strict';
 
     define(['backbone', 'js/discovery/models/search_state', 'js/discovery/collections/filters',
         'js/discovery/views/search_form', 'js/discovery/views/courses_listing',
         'js/discovery/views/filter_bar', 'js/discovery/views/refine_sidebar'],
         function(Backbone, SearchState, Filters, SearchForm, CoursesListing, FilterBar, RefineSidebar) {
-            return function(meanings, searchQuery, userLanguage, userTimezone) {
+            function DiscoveryFactory(meanings, searchQuery, userLanguage, userTimezone) {
                 var dispatcher = _.extend({}, Backbone.Events);
                 var search = new SearchState();
                 var filters = new Filters();
@@ -96,5 +95,6 @@
                     return '"' + string + '"';
                 }
             };
-        });
-})(define || RequireJS.define);
+            invokePageFactory(DiscoveryFactory);
+        }
+    );

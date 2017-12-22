@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'underscore', 'backbone', 'gettext',
         'js/discussions_management/views/divided_discussions_inline',
@@ -245,4 +244,3 @@
             });
             return DiscussionsView;
         });
-}).call(this, define || RequireJS.define);

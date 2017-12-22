@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(
@@ -152,4 +151,3 @@
 
             return LearnerProfileView;
         });
-}).call(this, define || RequireJS.define);

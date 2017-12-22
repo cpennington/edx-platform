@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 // VideoSkipControl module.
     define(
@@ -72,4 +71,3 @@ function() {
 
     return SkipControl;
 });
-}(RequireJS.define));

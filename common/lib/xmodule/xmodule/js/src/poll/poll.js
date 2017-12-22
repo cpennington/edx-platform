@@ -1,5 +1,5 @@
 window.Poll = function(el) {
-    RequireJS.require(['PollMain'], function(PollMain) {
+    require(['PollMain'], function(PollMain) {
         new PollMain(el);
     });
 };

@@ -2,7 +2,6 @@
  * Utility methods for emitting teams events. See the event spec:
  * https://openedx.atlassian.net/wiki/display/AN/Teams+Feature+Event+Design
  */
-(function(define) {
     'use strict';
 
     define([
@@ -20,4 +19,3 @@
 
         return TeamAnalytics;
     });
-}).call(this, define || RequireJS.define);

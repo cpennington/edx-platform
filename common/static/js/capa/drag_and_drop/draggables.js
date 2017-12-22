@@ -310,4 +310,4 @@
             draggableObj.stateDraggablesIndex = state.draggables.push(draggableObj) - 1;
         }
     }); // End-of: define(['draggable_events', 'draggable_logic'], function (draggableEvents, draggableLogic) {
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define)); // End-of: (function (requirejs, require, define) {
+}(requirejs, require, define)); // End-of: (function (requirejs, require, define) {

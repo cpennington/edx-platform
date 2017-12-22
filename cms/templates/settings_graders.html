@@ -26,13 +26,13 @@
   <link rel="stylesheet" type="text/css" href="${static.url('js/vendor/timepicker/jquery.timepicker.css')}" />
 </%block>
 <%block name="requirejs">
-    require(["js/factories/settings_graders"], function(SettingsGradersFactory) {
-        SettingsGradersFactory(
+    <%static:require_module module_name="js/factories/settings_graders" class_name="SettingsGradersFactory">
+        [
             _.extend(${dump_js_escaped_json(course_details, cls=CourseSettingsEncoder) | n},
                 {is_credit_course: ${is_credit_course | n, dump_js_escaped_json}}),
             "${grading_url | n, js_escaped_string}"
-        );
-    });
+        ]
+    </%static:require_module>
 </%block>
 
 <%block name="content">

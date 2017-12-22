@@ -1,7 +1,6 @@
 /**
  *  Store data to enroll learners into the course
  */
-(function(define) {
     'use strict';
 
     define([
@@ -16,4 +15,3 @@
             });
         }
     );
-}).call(this, define || RequireJS.define);

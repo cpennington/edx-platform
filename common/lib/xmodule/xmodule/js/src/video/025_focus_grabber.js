@@ -134,4 +134,4 @@ function() {
         this.focusGrabber.disableFocusGrabber();
     }
 });
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define));
+}(requirejs, require, define));

@@ -1,4 +1,3 @@
-(function(define) {
     define([
         'underscore',
         'backbone',
@@ -58,4 +57,3 @@
 
         });
     });
-})(define || RequireJS.define);

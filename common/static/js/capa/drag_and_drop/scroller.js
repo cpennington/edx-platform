@@ -202,4 +202,4 @@
             }
         } // End-of: function Scroller(state)
     }); // End-of: define([], function () {
-}(RequireJS.requirejs, RequireJS.require, RequireJS.define)); // End-of: (function (requirejs, require, define) {
+}(requirejs, require, define)); // End-of: (function (requirejs, require, define) {

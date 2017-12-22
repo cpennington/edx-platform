@@ -1386,8 +1386,6 @@ proctoring_js = (
 # Currently, this partially duplicates the "main vendor"
 # JavaScript file, so only one of the two should be included
 # on a page at any time.
-# In the future, we will likely refactor this to use
-# RequireJS and an optimizer.
 base_vendor_js = [
     'common/js/vendor/jquery.js',
     'common/js/vendor/jquery-migrate.js',
@@ -1402,9 +1400,7 @@ base_vendor_js = [
     'edx-ui-toolkit/js/utils/string-utils.js',
     'edx-ui-toolkit/js/utils/html-utils.js',
 
-    # Finally load RequireJS and dependent vendor libraries
-    'common/js/vendor/require.js',
-    'js/RequireJS-namespace-undefine.js',
+    # Finally load dependent vendor libraries
     'js/vendor/URI.min.js',
     'common/js/vendor/backbone.js'
 ]
@@ -1816,51 +1812,6 @@ STATICFILES_IGNORE_PATTERNS = (
     "xmodule_js",
 )
 
-
-################################# DJANGO-REQUIRE ###############################
-
-# The baseUrl to pass to the r.js optimizer, relative to STATIC_ROOT.
-REQUIRE_BASE_URL = "./"
-
-# The name of a build profile to use for your project, relative to REQUIRE_BASE_URL.
-# A sensible value would be 'app.build.js'. Leave blank to use the built-in default build profile.
-# Set to False to disable running the default profile (e.g. if only using it to build Standalone
-# Modules)
-REQUIRE_BUILD_PROFILE = "lms/js/build.js"
-
-# The name of the require.js script used by your project, relative to REQUIRE_BASE_URL.
-REQUIRE_JS = "common/js/vendor/require.js"
-
-# Whether to run django-require in debug mode.
-REQUIRE_DEBUG = False
-
-# In production, the Django pipeline appends a file hash to JavaScript file names.
-# This makes it difficult for RequireJS to load its requirements, since module names
-# specified in JavaScript code do not include the hash.
-# For this reason, we calculate the actual path including the hash on the server
-# when rendering the page.  We then override the default paths provided to RequireJS
-# so it can resolve the module name to the correct URL.
-#
-# If you want to load JavaScript dependencies using RequireJS
-# but you don't want to include those dependencies in the JS bundle for the page,
-# then you need to add the js urls in this list.
-REQUIRE_JS_PATH_OVERRIDES = {
-    'course_bookmarks/js/views/bookmark_button': 'course_bookmarks/js/views/bookmark_button.js',
-    'js/views/message_banner': 'js/views/message_banner.js',
-    'moment': 'common/js/vendor/moment-with-locales.js',
-    'moment-timezone': 'common/js/vendor/moment-timezone-with-data.js',
-    'js/courseware/course_info_events': 'js/courseware/course_info_events.js',
-    'js/courseware/accordion_events': 'js/courseware/accordion_events.js',
-    'js/dateutil_factory': 'js/dateutil_factory.js',
-    'js/courseware/link_clicked_events': 'js/courseware/link_clicked_events.js',
-    'js/courseware/toggle_element_visibility': 'js/courseware/toggle_element_visibility.js',
-    'js/student_account/logistration_factory': 'js/student_account/logistration_factory.js',
-    'js/courseware/courseware_factory': 'js/courseware/courseware_factory.js',
-    'js/groups/views/cohorts_dashboard_factory': 'js/groups/views/cohorts_dashboard_factory.js',
-    'js/groups/discussions_management/discussions_dashboard_factory': 'js/discussions_management/views/discussions_dashboard_factory.js',
-    'draggabilly': 'js/vendor/draggabilly.js',
-    'hls': 'common/js/vendor/hls.js'
-}
 
 ########################## DJANGO WEBPACK LOADER ##############################
 

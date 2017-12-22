@@ -1,8 +1,7 @@
-(function(define) {
     'use strict';
     define(['jquery', 'teams/js/views/teams_tab'],
         function($, TeamsTabView) {
-            return function(options) {
+            function TeamsTabFactory(options) {
                 var teamsTab = new TeamsTabView({
                     el: $('.teams-content'),
                     context: options,
@@ -10,5 +9,6 @@
                 });
                 teamsTab.start();
             };
+
+            invokePageFactory(TeamsTabFactory);
         });
-}).call(this, define || RequireJS.define);

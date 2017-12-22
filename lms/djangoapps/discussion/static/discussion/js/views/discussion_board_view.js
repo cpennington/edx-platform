@@ -1,5 +1,4 @@
 /* globals Discussion */
-(function(define) {
     'use strict';
 
     define([
@@ -301,4 +300,3 @@
 
         return DiscussionBoardView;
     });
-}).call(this, define || RequireJS.define);

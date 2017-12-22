@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'gettext', 'jquery', 'underscore', 'backbone', 'js/views/fields',
@@ -228,4 +227,3 @@
 
         return ImageFieldView;
     });
-}).call(this, define || RequireJS.define);

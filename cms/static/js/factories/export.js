@@ -2,7 +2,7 @@ define([
     'domReady', 'js/views/export', 'jquery', 'gettext'
 ], function(domReady, Export, $, gettext) {
     'use strict';
-    return function(courselikeHomeUrl, library, statusUrl) {
+    function ExportFactory(courselikeHomeUrl, library, statusUrl) {
         var $submitBtn = $('.action-export'),
             unloading = false,
             previousExport = Export.storedExport(courselikeHomeUrl);
@@ -54,4 +54,6 @@ define([
             $submitBtn.bind('click', startExport);
         });
     };
+
+    invokePageFactory(ExportFactory);
 });

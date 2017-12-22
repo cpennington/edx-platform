@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define('video/09_play_pause_control.js', [], function() {
     /**
@@ -93,4 +92,3 @@
 
         return PlayPauseControl;
     });
-}(RequireJS.define));

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'backbone',
@@ -31,4 +30,3 @@
         });
         return TeamsView;
     });
-}).call(this, define || RequireJS.define);

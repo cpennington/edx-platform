@@ -3,7 +3,7 @@ define([
     'js/views/previous_video_upload_list', 'js/views/active_video_upload'
 ], function($, Backbone, ActiveVideoUploadListView, PreviousVideoUploadListView, ActiveVideoUpload) {
     'use strict';
-    var VideosIndexFactory = function(
+    function VideosIndexFactory(
         $contentWrapper,
         videoImageUploadURL,
         videoHandlerUrl,
@@ -69,5 +69,5 @@ define([
         $contentWrapper.append(previousView.render().$el);
     };
 
-    return VideosIndexFactory;
+    invokePageFactory(VideosIndexFactory);
 });

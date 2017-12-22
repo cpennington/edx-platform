@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
 
     define(['annotator_1.2.9'], function(Annotator) {
@@ -29,5 +28,4 @@
             originalErrorHandler(xhr);
         };
     });
-}).call(this, define || RequireJS.define);
 

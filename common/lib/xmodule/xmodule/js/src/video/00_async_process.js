@@ -1,4 +1,3 @@
-(function(define) {
     define(
 'video/00_async_process.js',
 [],
@@ -55,5 +54,4 @@ function() {
 
     return AsyncProcess;
 });
-}(RequireJS.define));
 

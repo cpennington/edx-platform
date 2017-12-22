@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'underscore', 'backbone'
@@ -12,4 +11,3 @@
 
         return UserPreferencesModel;
     });
-}).call(this, define || RequireJS.define);

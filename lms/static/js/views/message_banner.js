@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'jquery', 'underscore', 'backbone', 'text!templates/fields/message_banner.underscore'
@@ -36,4 +35,3 @@
 
         return MessageBannerView;
     });
-}).call(this, define || RequireJS.define);

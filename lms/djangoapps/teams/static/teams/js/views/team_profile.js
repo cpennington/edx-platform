@@ -1,7 +1,6 @@
 /**
  * View for an individual team.
  */
-(function(define) {
     'use strict';
     define([
         'backbone',
@@ -114,4 +113,3 @@
 
             return TeamProfileView;
         });
-}).call(this, define || RequireJS.define);

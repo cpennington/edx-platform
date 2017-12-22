@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define('video/09_poster.js', [], function() {
     /**
@@ -66,4 +65,3 @@
 
         return VideoPoster;
     });
-}(RequireJS.define));

@@ -15,7 +15,7 @@ var options = {
         return pattern;
     },
 
-    // Avoid adding files to this list. Use RequireJS.
+    // Avoid adding files to this list. Use
     libraryFilesToInclude: [
         // Load the core JavaScript dependencies
         {pattern: 'common_static/coffee/src/ajax_prefix.js', included: true},

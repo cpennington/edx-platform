@@ -79,7 +79,7 @@ describe("RequireJS module creation", function() {
             inRequireCallback = false;
 
             // Define our test module.
-            RequireJS.define("test_module", [], function() {
+            define("test_module", [], function() {
                 inDefineCallback = true;
 
                 d1.resolve();
@@ -91,7 +91,7 @@ describe("RequireJS module creation", function() {
 
 
             // Require our defined test module.
-            return RequireJS.require(["test_module"], function(test_module) {
+            return require(["test_module"], function(test_module) {
                 inRequireCallback = true;
 
                 // If our test module was defined properly, then we should

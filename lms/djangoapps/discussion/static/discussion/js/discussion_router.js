@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(
@@ -145,4 +144,3 @@
 
             return DiscussionRouter;
         });
-}).call(this, define || RequireJS.define);

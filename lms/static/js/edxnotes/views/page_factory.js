@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'jquery', 'js/edxnotes/collections/notes', 'js/edxnotes/views/notes_page'
@@ -32,4 +31,3 @@
             });
         };
     });
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define([
@@ -30,4 +29,3 @@
 
         return searchView;
     });
-}).call(this, define || RequireJS.define);

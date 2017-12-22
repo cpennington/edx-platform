@@ -15,7 +15,6 @@
  * - actionUrl (string or function): URL to navigate to when the action button is clicked. Defaults to the empty string.
  * - actionContent: Content of the action button. This may include HTML. Default to the empty string.
  */
-(function(define) {
     'use strict';
     define(['jquery',
             'underscore',
@@ -110,4 +109,3 @@
 
             return CardView;
         });
-}).call(this, define || RequireJS.define);

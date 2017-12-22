@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'underscore', 'backbone', 'gettext', 'js/groups/models/cohort',
         'js/groups/models/verified_track_settings',
@@ -314,4 +313,3 @@
             });
             return CohortsView;
         });
-}).call(this, define || RequireJS.define);

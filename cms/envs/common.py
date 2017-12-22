@@ -769,9 +769,6 @@ base_vendor_js = [
     # Load Bootstrap and supporting libraries
     'common/js/vendor/popper.js',
     'common/js/vendor/bootstrap.js',
-
-    # Finally load RequireJS
-    'common/js/vendor/require.js'
 ]
 
 # test_order: Determines the position of this chunk of javascript on
@@ -826,24 +823,6 @@ STATICFILES_IGNORE_PATTERNS = (
 )
 
 PIPELINE_YUI_BINARY = 'yui-compressor'
-
-################################# DJANGO-REQUIRE ###############################
-
-
-# The baseUrl to pass to the r.js optimizer, relative to STATIC_ROOT.
-REQUIRE_BASE_URL = "./"
-
-# The name of a build profile to use for your project, relative to REQUIRE_BASE_URL.
-# A sensible value would be 'app.build.js'. Leave blank to use the built-in default build profile.
-# Set to False to disable running the default profile (e.g. if only using it to build Standalone
-# Modules)
-REQUIRE_BUILD_PROFILE = "cms/js/build.js"
-
-# The name of the require.js script used by your project, relative to REQUIRE_BASE_URL.
-REQUIRE_JS = "js/vendor/requiresjs/require.js"
-
-# Whether to run django-require in debug mode.
-REQUIRE_DEBUG = False
 
 ########################## DJANGO WEBPACK LOADER ##############################
 
@@ -1000,7 +979,6 @@ INSTALLED_APPS = [
     'edxmako.apps.EdxMakoConfig',
     'pipeline',
     'static_replace',
-    'require',
     'webpack_loader',
 
     # Theming

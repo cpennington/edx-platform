@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-(function(define) {
     'use strict';
 
     define(
@@ -32,4 +31,3 @@
 
             return BadgeListContainer;
         });
-}).call(this, define || RequireJS.define);

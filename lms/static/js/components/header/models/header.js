@@ -1,7 +1,6 @@
 /**
  * A generic header model.
  */
-(function(define) {
     'use strict';
     define(['backbone'], function(Backbone) {
         var HeaderModel = Backbone.Model.extend({
@@ -15,4 +14,3 @@
 
         return HeaderModel;
     });
-}).call(this, define || RequireJS.define);

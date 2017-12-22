@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'backbone',
@@ -71,4 +70,3 @@
         });
         return PagingHeader;
     });
-}).call(this, define || RequireJS.define);

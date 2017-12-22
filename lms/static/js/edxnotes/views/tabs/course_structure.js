@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'underscore', 'js/edxnotes/views/note_group', 'js/edxnotes/views/tab_panel',
@@ -55,4 +54,3 @@
 
         return CourseStructureView;
     });
-}).call(this, define || RequireJS.define);

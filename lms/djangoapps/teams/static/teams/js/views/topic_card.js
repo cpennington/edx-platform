@@ -1,7 +1,6 @@
 /**
  * View for a topic card. Displays a Topic.
  */
-(function(define) {
     'use strict';
     define(['backbone', 'underscore', 'gettext', 'js/components/card/views/card'],
         function(Backbone, _, gettext, CardView) {
@@ -52,4 +51,3 @@
 
             return TopicCardView;
         });
-}).call(this, define || RequireJS.define);

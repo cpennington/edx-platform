@@ -1,9 +1,9 @@
 <%page expression_filter="h"/>
 <%inherit file="base.html" />
 <%def name="online_help_token()">
-<% 
+<%
 if library:
-    return "export_library" 
+    return "export_library"
 else:
     return "export_course"
 %>
@@ -27,13 +27,14 @@ else:
 <%block name="bodyclass">is-signedin course tools view-export</%block>
 
 <%block name="requirejs">
-  var courselikeHomeUrl = "${courselike_home_url | n, js_escaped_string}",
-      is_library = ${library | n, dump_js_escaped_json},
-      statusUrl = "${status_url | n, js_escaped_string}";
 
-  require(["js/factories/export"], function(ExportFactory) {
-      ExportFactory(courselikeHomeUrl, is_library, statusUrl);
-  });
+  <%static:require_module module_name="js/factories/export" class_name="ExportFactory">
+      [
+          "${courselike_home_url | n, js_escaped_string}",
+          ${library | n, dump_js_escaped_json},
+          "${status_url | n, js_escaped_string}"
+      ]
+  </%static:require_module>
 </%block>
 
 <%block name="content">

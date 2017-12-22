@@ -1,5 +1,4 @@
 /*  Team utility methods*/
-(function(define) {
     'use strict';
     define(['jquery', 'underscore'
     ], function($, _) {
@@ -69,4 +68,3 @@
             }
         };
     });
-}).call(this, define || RequireJS.define);

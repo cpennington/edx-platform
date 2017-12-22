@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'jquery.cookie'], function($) {
         var EmailOptInInterface = {
@@ -29,4 +28,3 @@
 
         return EmailOptInInterface;
     });
-}).call(this, define || RequireJS.define);

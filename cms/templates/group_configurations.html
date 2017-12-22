@@ -25,16 +25,16 @@ from openedx.core.djangolib.markup import HTML, Text
 </%block>
 
 <%block name="requirejs">
-  require(["js/factories/group_configurations"], function(GroupConfigurationsFactory) {
-      GroupConfigurationsFactory(
+  <%static:require_module module_name="js/factories/group_configurations" class_name="GroupConfigurationsFactory">
+      [
           ${should_show_experiment_groups | n, dump_js_escaped_json},
           ${experiment_group_configurations | n, dump_js_escaped_json},
           ${all_group_configurations | n, dump_js_escaped_json},
           "${group_configuration_url | n, js_escaped_string}",
           "${course_outline_url | n, js_escaped_string}",
           ${should_show_enrollment_track | n, dump_js_escaped_json}
-      );
-  });
+      ]
+  </%static:require_module>
 </%block>
 
 <%block name="content">

@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'jquery', 'underscore', 'js/edxnotes/views/note_group', 'js/edxnotes/views/tab_panel',
@@ -136,4 +135,3 @@
 
         return TagsView;
     });
-}).call(this, define || RequireJS.define);

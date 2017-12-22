@@ -1,4 +1,4 @@
-(function(define) {
+
     'use strict';
     define(['underscore', 'backbone', 'gettext'],
         function(_, Backbone, gettext) {
@@ -142,4 +142,4 @@
             });
             return PagingView;
         }); // end define();
-}).call(this, define || RequireJS.define);
+

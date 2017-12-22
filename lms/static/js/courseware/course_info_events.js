@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(['jquery', 'logger'], function($, Logger) {
@@ -13,4 +12,3 @@
             });
         };
     });
-}).call(this, define || RequireJS.define);

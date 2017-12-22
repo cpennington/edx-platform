@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define(['gettext', 'underscore', 'backbone', 'js/edxnotes/views/note_item',
     'common/js/components/views/paging_header', 'common/js/components/views/paging_footer'],
@@ -69,4 +68,3 @@ function(gettext, _, Backbone, NoteItemView, PagingHeaderView, PagingFooterView)
 
     return TabPanelView;
 });
-}).call(this, define || RequireJS.define);

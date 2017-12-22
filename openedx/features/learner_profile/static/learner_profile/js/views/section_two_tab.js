@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(
@@ -32,4 +31,3 @@
 
             return SectionTwoTab;
         });
-}).call(this, define || RequireJS.define);

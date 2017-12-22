@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define([
@@ -123,4 +122,3 @@
                 }
             });
         });
-}).call(this, define || RequireJS.define);

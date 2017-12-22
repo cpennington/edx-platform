@@ -1,4 +1,3 @@
-(function(define) {
     define([
         'jquery',
         'underscore',
@@ -61,4 +60,3 @@
 
         });
     });
-})(define || RequireJS.define);

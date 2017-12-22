@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'underscore', 'backbone'
@@ -61,4 +60,3 @@
         });
         return UserAccountModel;
     });
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define('video/09_events_plugin.js', [], function() {
     /**
@@ -152,4 +151,3 @@
 
         return EventsPlugin;
     });
-}(RequireJS.define));

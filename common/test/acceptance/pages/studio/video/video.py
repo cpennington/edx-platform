@@ -83,7 +83,7 @@ DEFAULT_SETTINGS = [
 DELAY = 0.5
 
 
-@js_defined('window.Video', 'window.RequireJS.require', 'window.jQuery', 'window.XModule', 'window.XBlock',
+@js_defined('window.Video', 'window.require', 'window.jQuery', 'window.XModule', 'window.XBlock',
             'window.MathJax', 'window.MathJax.isReady')
 class VideoComponentPage(VideoPage):
     """

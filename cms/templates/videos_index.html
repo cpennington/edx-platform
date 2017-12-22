@@ -24,11 +24,9 @@
 </%block>
 
 <%block name="requirejs">
-    require(["js/factories/videos_index"], function (VideosIndexFactory) {
-        "use strict";
-        var $contentWrapper = $(".content-primary");
-        VideosIndexFactory(
-            $contentWrapper,
+    <%static:require_module module_name="js/factories/videos_index" class_name="VideosIndexFactory">
+        [
+            $(".content-primary"),
             "${image_upload_url | n, js_escaped_string}",
             "${video_handler_url | n, js_escaped_string}",
             "${encodings_download_url | n, js_escaped_string}",
@@ -43,8 +41,8 @@
             ${video_transcript_settings | n, dump_js_escaped_json},
             ${is_video_transcript_enabled | n, dump_js_escaped_json},
             ${video_image_settings | n, dump_js_escaped_json}
-        );
-    });
+        ]
+    </%static:require_module>
 </%block>
 
 <%block name="content">

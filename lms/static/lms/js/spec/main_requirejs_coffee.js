@@ -45,4 +45,4 @@
             }
         }
     });
-}).call(this, RequireJS.requirejs, RequireJS.define);
+}).call(this, requirejs, define);

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(['gettext', 'jquery', 'underscore', 'backbone', 'js/views/message_banner'],
@@ -114,4 +113,3 @@
                 }
             });
         });
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['backbone'], function(Backbone) {
         var ContentGroupModel = Backbone.Model.extend({
@@ -10,4 +9,3 @@
         });
         return ContentGroupModel;
     });
-}).call(this, define || RequireJS.define);

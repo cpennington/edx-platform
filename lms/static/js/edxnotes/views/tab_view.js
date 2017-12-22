@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'jquery',
@@ -147,4 +146,3 @@
 
         return TabView;
     });
-}).call(this, define || RequireJS.define);

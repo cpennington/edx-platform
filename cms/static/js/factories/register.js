@@ -1,6 +1,6 @@
 define(['jquery', 'jquery.cookie'], function($) {
     'use strict';
-    return function() {
+    function RegisterFactory() {
         $('form :input')
             .focus(function() {
                 $('label[for="' + this.id + '"]').addClass('is-focused');
@@ -30,4 +30,6 @@ define(['jquery', 'jquery.cookie'], function($) {
             });
         });
     };
+
+    RegisterFactory();
 });

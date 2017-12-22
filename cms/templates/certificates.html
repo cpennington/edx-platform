@@ -32,17 +32,17 @@ CMS.User.isGlobalStaff = '${is_global_staff}'=='True' ? true : false;
 
 <%block name="requirejs">
 % if has_certificate_modes:
-  require(["js/certificates/factories/certificates_page_factory"], function(CertificatesPageFactory) {
-      CertificatesPageFactory(
-          ${certificates | n, dump_js_escaped_json},
-          "${certificate_url | n, js_escaped_string}",
-          "${course_outline_url | n, js_escaped_string}",
-          ${course_modes | n, dump_js_escaped_json},
-          ${certificate_web_view_url | n, dump_js_escaped_json},
-          ${is_active | n, dump_js_escaped_json},
-          ${certificate_activation_handler_url | n, dump_js_escaped_json}
-      );
-  });
+    <%static:require_module module_name="js/certificates/factories/certificates_page_factory" class_name="CertificatesPageFactory">
+        [
+            ${certificates | n, dump_js_escaped_json},
+            "${certificate_url | n, js_escaped_string}",
+            "${course_outline_url | n, js_escaped_string}",
+            ${course_modes | n, dump_js_escaped_json},
+            ${certificate_web_view_url | n, dump_js_escaped_json},
+            ${is_active | n, dump_js_escaped_json},
+            ${certificate_activation_handler_url | n, dump_js_escaped_json}
+        ]
+    </%static:require_module>
 % endif
 </%block>
 

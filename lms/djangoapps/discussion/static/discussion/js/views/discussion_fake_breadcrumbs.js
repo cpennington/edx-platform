@@ -6,7 +6,6 @@
  * http://ux.edx.org/components/breadcrumbs/
  */
 
-(function(define) {
     'use strict';
 
     define([
@@ -31,4 +30,3 @@
 
         return DiscussionFakeBreadcrumbs;
     });
-}).call(this, define || RequireJS.define);

@@ -20,7 +20,7 @@ define([
 ],
 function($, CertificatesCollection, Certificate, CertificatesPage, CertificatePreview) {
     'use strict';
-    return function(certificatesJson, certificateUrl, courseOutlineUrl, course_modes, certificate_web_view_url,
+    function CertificatesPageFactory(certificatesJson, certificateUrl, courseOutlineUrl, course_modes, certificate_web_view_url,
                      is_active, certificate_activation_handler_url) {
         // Initialize the model collection, passing any necessary options to the constructor
         var certificatesCollection = new CertificatesCollection(certificatesJson, {
@@ -46,4 +46,6 @@ function($, CertificatesCollection, Certificate, CertificatesPage, CertificatePr
             certificatesCollection: certificatesCollection
         }).render();
     };
+
+    CertificatesPageFactory(...window.certificatesPageConfig);
 });

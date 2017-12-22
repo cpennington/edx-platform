@@ -27,9 +27,9 @@ CMS.URL.LMS_BASE = "${settings.LMS_BASE}"
 </script>
 </%block>
 <%block name="requirejs">
-    require(["js/factories/textbooks"], function(TextbooksFactory) {
-        TextbooksFactory(${textbooks | n, dump_js_escaped_json});
-    });
+    <%static:require_module module_name="js/factories/textbooks" class_name="TextbooksFactory">
+        ${textbooks | n, dump_js_escaped_json}
+    </%static:require_module>
 </%block>
 
 <%block name="content">

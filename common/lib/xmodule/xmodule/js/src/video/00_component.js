@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define('video/00_component.js', [],
 function() {
@@ -77,4 +76,3 @@ function() {
 
     return Component;
 });
-}(RequireJS.define));

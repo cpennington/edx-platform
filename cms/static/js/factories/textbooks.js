@@ -2,7 +2,7 @@ define([
     'gettext', 'js/models/section', 'js/collections/textbook', 'js/views/list_textbooks'
 ], function(gettext, Section, TextbookCollection, ListTextbooksView) {
     'use strict';
-    return function(textbooksJson) {
+    function TextbooksFactory(textbooksJson) {
         var textbooks = new TextbookCollection(textbooksJson, {parse: true}),
             tbView = new ListTextbooksView({collection: textbooks});
 
@@ -17,4 +17,6 @@ define([
             }
         });
     };
+
+    invokePageFactory(TextbooksFactory);
 });

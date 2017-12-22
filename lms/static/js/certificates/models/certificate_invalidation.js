@@ -1,7 +1,6 @@
 // Backbone.js Application Model: CertificateInvalidation
 /* global define, RequireJS */
 
-(function(define) {
     'use strict';
 
     define(
@@ -32,4 +31,3 @@
             });
         }
     );
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'jquery', 'underscore', 'backbone', 'logger',
@@ -342,4 +341,3 @@
             };
         };
     });
-}).call(this, define || RequireJS.define);

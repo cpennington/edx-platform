@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define('video/04_video_full_screen.js', ['edx-ui-toolkit/js/utils/html-utils'], function(HtmlUtils) {
         var template = [
@@ -189,4 +188,3 @@
             }
         }
     });
-}(RequireJS.define));

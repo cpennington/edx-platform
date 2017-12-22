@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['backbone', 'js/edxnotes/utils/utils', 'underscore.string'], function(Backbone, Utils, str) {
         var NoteModel = Backbone.Model.extend({
@@ -57,4 +56,3 @@
 
         return NoteModel;
     });
-}).call(this, define || RequireJS.define);

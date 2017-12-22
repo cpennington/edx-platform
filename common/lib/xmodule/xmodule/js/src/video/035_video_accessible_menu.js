@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 // VideoTranscriptDownloadHandler module.
     define(
@@ -66,4 +65,3 @@ function(_) {
 
     return VideoTranscriptDownloadHandler;
 });
-}(RequireJS.define));

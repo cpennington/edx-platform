@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define('video/09_play_placeholder.js', [], function() {
     /**
@@ -84,4 +83,3 @@
 
         return PlayPlaceholder;
     });
-}(RequireJS.define));

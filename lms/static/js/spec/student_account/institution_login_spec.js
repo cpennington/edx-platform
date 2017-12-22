@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'jquery',
@@ -82,4 +81,3 @@
                 });
             });
         });
-}).call(this, define || RequireJS.define);

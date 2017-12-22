@@ -52,7 +52,7 @@ from openedx.core.djangolib.js_utils import js_escaped_string
 </%block>
 
 <%block name="requirejs">
-  require(["js/factories/login"], function(LoginFactory) {
-      LoginFactory("${reverse('homepage') | n, js_escaped_string }");
-  });
+  <%static:require_module module_name="js/factories/login" class_name="LoginFactory">
+      "${reverse('homepage') | n, js_escaped_string }"
+  </%static:require_module>
 </%block>

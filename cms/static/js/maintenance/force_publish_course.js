@@ -8,7 +8,7 @@ define([ // jshint ignore:line
 ],
 function($, _, gettext, ViewUtils, StringUtils, HtmlUtils) {
     'use strict';
-    return function(maintenanceViewURL) {
+    function MaintenanceFactory(maintenanceViewURL) {
         var showError;
         // Reset values
         $('#reset-button').click(function(e) {
@@ -75,5 +75,7 @@ function($, _, gettext, ViewUtils, StringUtils, HtmlUtils) {
             });
         });
     };
+
+    invokePageFactory(MaintenanceFactory);
 });
 

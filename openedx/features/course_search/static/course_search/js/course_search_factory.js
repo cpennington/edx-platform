@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define([
@@ -6,7 +5,7 @@
         'course_search/js/collections/search_collection', 'course_search/js/views/course_search_results_view'
     ],
         function(_, Backbone, SearchRouter, CourseSearchForm, SearchCollection, CourseSearchResultsView) {
-            return function(options) {
+            function CourseSearchFactory(options) {
                 var courseId = options.courseId;
                 var requestedQuery = options.query;
                 var supportsActive = options.supportsActive;
@@ -56,5 +55,7 @@
                     router.trigger('search', requestedQuery);
                 }
             };
-        });
-}(define || RequireJS.define));
+
+            invokePageFactory(CourseSearchFactory);
+        }
+    );

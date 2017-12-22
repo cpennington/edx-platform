@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['jquery', 'underscore', 'backbone', 'gettext', 'edx-ui-toolkit/js/utils/string-utils',
             'js/models/notification', 'js/views/notification'],
@@ -76,4 +75,3 @@
             });
             return VerifiedTrackSettingsNotificationView;
         });
-}).call(this, define || RequireJS.define);

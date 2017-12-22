@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define('js/discussions_management/views/discussions_dashboard_factory',
         ['jquery', 'js/discussions_management/views/discussions',
@@ -29,5 +28,4 @@
                 });
             };
         });
-}).call(this, define || RequireJS.define);
 

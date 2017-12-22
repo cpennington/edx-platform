@@ -1,5 +1,4 @@
 /* eslint-disable no-underscore-dangle */
-(function(define) {
     'use strict';
 
     define([
@@ -157,4 +156,3 @@
 
         return LearnerProfileFieldViews;
     });
-}).call(this, define || RequireJS.define);

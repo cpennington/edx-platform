@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'jquery', 'underscore', 'backbone', 'js/edxnotes/utils/template',
@@ -78,4 +77,3 @@
 
         return NoteItemView;
     });
-}).call(this, define || RequireJS.define);

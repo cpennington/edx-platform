@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['underscore', 'logger'], function(_, Logger) {
         var loggers = [],
@@ -147,4 +146,3 @@
             destroyLogger: destroyLogger
         };
     });
-}).call(this, define || RequireJS.define);

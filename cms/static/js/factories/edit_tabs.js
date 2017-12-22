@@ -2,7 +2,7 @@ define([
     'js/models/explicit_url', 'js/views/tabs', 'xmodule', 'cms/js/main', 'xblock/cms.runtime.v1'
 ], function(TabsModel, TabsEditView, xmoduleLoader) {
     'use strict';
-    return function(courseLocation, explicitUrl) {
+    function EditTabsFactory(courseLocation, explicitUrl) {
         xmoduleLoader.done(function() {
             var model = new TabsModel({
                     id: courseLocation,
@@ -17,4 +17,6 @@ define([
             });
         });
     };
+
+    invokePageFactory(EditTabsFactory);
 });

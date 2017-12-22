@@ -1,7 +1,6 @@
 /**
  * A custom TabbedView for Teams.
  */
-(function(define) {
     'use strict';
 
     define([
@@ -21,4 +20,3 @@
 
         return TeamsTabbedView;
     });
-}).call(this, define || RequireJS.define);

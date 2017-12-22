@@ -4,7 +4,7 @@
 define(['underscore', 'gettext', 'js/views/manage_users_and_roles'],
 function(_, gettext, ManageUsersAndRoles) {
     'use strict';
-    return function(containerName, users, tplUserURL, current_user_id, allow_actions) {
+    function ManageCourseUsersFactory(containerName, users, tplUserURL, current_user_id, allow_actions) {
         function updateMessages(messages) {
             var local_messages = _.extend({}, messages);
             local_messages.alreadyMember.title = gettext('Already a course team member');
@@ -32,4 +32,6 @@ function(_, gettext, ManageUsersAndRoles) {
         var view = new ManageUsersAndRoles(options);
         view.render();
     };
+
+    invokePageFactory(ManageCourseUsersFactory);
 });

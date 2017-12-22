@@ -395,5 +395,5 @@ if (define !== undefined) {
 }
 else {
     // Added by edX: we namespace requirejs and its associated functions.
-    RequireJS.define(['module'], requirejs_text_function);
+    define(['module'], requirejs_text_function);
 }

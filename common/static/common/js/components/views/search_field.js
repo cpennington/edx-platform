@@ -3,7 +3,6 @@
  * performs a search, the collection's search string will be updated and then the
  * collection will be refreshed to show the first page of results.
  */
-(function(define) {
     'use strict';
 
     define([
@@ -89,4 +88,3 @@
                 }
             });
         });
-}).call(this, define || RequireJS.define);

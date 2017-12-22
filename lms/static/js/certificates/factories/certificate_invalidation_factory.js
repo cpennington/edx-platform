@@ -1,7 +1,6 @@
 // Backbone.js Page Object Factory: Certificate Invalidation Factory
 /* global define, RequireJS */
 
-(function(define) {
     'use strict';
     define(
         [
@@ -26,4 +25,3 @@
             };
         }
     );
-}).call(this, define || RequireJS.define);

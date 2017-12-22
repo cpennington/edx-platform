@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'backbone',
@@ -92,4 +91,3 @@
 
         return TopicTeamsView;
     });
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define) {
     define([
         'backbone',
         'js/discovery/models/course_card'
@@ -101,4 +100,3 @@
 
         });
     });
-})(define || RequireJS.define);

@@ -16,9 +16,7 @@ from openedx.core.djangolib.js_utils import js_escaped_string
   </script>
 </%block>
 <%block name="requirejs">
-  require(["js/factories/course_create_rerun"], function (CourseCreateRerunFactory) {
-      CourseCreateRerunFactory();
-  });
+  <%static:require_module module_name="js/factories/course_create_rerun" class_name="CourseCreateRerunFactory"/>
 </%block>
 
 <%block name="content">

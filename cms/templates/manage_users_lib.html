@@ -108,13 +108,13 @@ from openedx.core.djangolib.js_utils import (
 </%block>
 
 <%block name="requirejs">
-  require(["js/factories/manage_users_lib"], function(ManageLibraryUsersFactory) {
-      ManageLibraryUsersFactory(
+  <%static:require_module module_name="js/factories/manage_users_lib" class_name="ManageLibraryUsersFactory">
+      [
         "${context_library.display_name_with_default | h}",
         ${users | n, dump_js_escaped_json},
         "${reverse('course_team_handler', kwargs={'course_key_string': library_key, 'email': '@@EMAIL@@'}) | n, js_escaped_string}",
         ${request.user.id | n, dump_js_escaped_json},
         ${allow_actions | n, dump_js_escaped_json}
-      );
-  });
+      ]
+  </%static:require_module>
 </%block>

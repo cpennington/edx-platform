@@ -2,17 +2,16 @@
 
 'use strict';
 
+var Merge = require('webpack-merge');
 var path = require('path');
 var webpack = require('webpack');
 var BundleTracker = require('webpack-bundle-tracker');
-var StringReplace = require('string-replace-webpack-plugin');
 
-var namespacedRequireFiles = [
-    path.resolve(__dirname, 'common/static/common/js/components/views/feedback_notification.js'),
-    path.resolve(__dirname, 'common/static/common/js/components/views/feedback.js')
-];
+var lmsRequirePortedConfig = require('./webpack-config/lms.require.js');
+var studioRequirePortedConfig = require('./webpack-config/studio.require.js');
+var openedxRequirePortedConfig = require('./webpack-config/openedx.require.js');
 
-module.exports = {
+module.exports = Merge.smart(lmsRequirePortedConfig, studioRequirePortedConfig, openedxRequirePortedConfig, {
     context: __dirname,
 
     entry: {
@@ -38,7 +37,7 @@ module.exports = {
         WelcomeMessage: './openedx/features/course_experience/static/course_experience/js/WelcomeMessage.js',
 
         // Common
-        ReactRenderer: './common/static/js/src/ReactRenderer.jsx'
+        ReactRenderer: './common/static/js/src/ReactRenderer.jsx',
     },
 
     output: {
@@ -83,28 +82,13 @@ module.exports = {
     module: {
         rules: [
             {
-                test: namespacedRequireFiles,
-                loader: StringReplace.replace(
-                    ['babel-loader'],
-                    {
-                        replacements: [
-                            {
-                                pattern: /\(function ?\(define\) ?\{/,
-                                replacement: function() { return ''; }
-                            },
-                            {
-                                pattern: /\}\)\.call\(this, define \|\| RequireJS\.define\);/,
-                                replacement: function() { return ''; }
-                            }
-                        ]
-                    }
-                )
+                test: /string-utils|html-utils/,
+                loader: 'imports-loader?define=>false'
             },
             {
                 test: /\.(js|jsx)$/,
                 exclude: [
                     /node_modules/,
-                    namespacedRequireFiles
                 ],
                 use: 'babel-loader'
             },
@@ -149,7 +133,9 @@ module.exports = {
         alias: {
             'edx-ui-toolkit': 'edx-ui-toolkit/src/',  // @TODO: some paths in toolkit are not valid relative paths
             'jquery.ui': 'jQuery-File-Upload/js/vendor/jquery.ui.widget.js',
-            jquery: 'jquery/src/jquery'  // Use the non-dist form of jQuery for better debugging + optimization
+            jquery: 'jquery/src/jquery',  // Use the non-dist form of jQuery for better debugging + optimization
+            xmodule: path.resolve(__dirname, 'common/lib/xmodule/xmodule/js/src/xmodule.js'),
+            'js/capa/drag_and_drop': path.resolve(__dirname, 'common/static/js/capa/drag_and_drop'),
         },
         modules: [
             'node_modules',
@@ -176,4 +162,4 @@ module.exports = {
     watchOptions: {
         poll: true
     }
-};
+});

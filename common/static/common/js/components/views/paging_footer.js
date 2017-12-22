@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define([
         'underscore',
@@ -76,4 +75,3 @@
 
             return PagingFooter;
         }); // end define();
-}).call(this, define || RequireJS.define);

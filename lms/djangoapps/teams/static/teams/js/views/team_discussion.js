@@ -1,7 +1,6 @@
 /**
  * View that shows the discussion for a team.
  */
-(function(define) {
     'use strict';
     define(['backbone', 'underscore', 'gettext', 'common/js/discussion/views/discussion_inline_view'],
         function(Backbone, _, gettext, DiscussionInlineView) {
@@ -25,4 +24,3 @@
 
             return TeamDiscussionView;
         });
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'jquery', 'underscore', 'js/edxnotes/views/notes_factory'
@@ -71,4 +70,3 @@
             }
         };
     });
-}).call(this, define || RequireJS.define);

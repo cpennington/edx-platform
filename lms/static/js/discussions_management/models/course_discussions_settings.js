@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
     define(['backbone'], function(Backbone) {
         var CourseDiscussionsSettingsModel = Backbone.Model.extend({
@@ -12,4 +11,3 @@
         });
         return CourseDiscussionsSettingsModel;
     });
-}).call(this, define || RequireJS.define);

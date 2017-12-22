@@ -2,7 +2,7 @@ define([
     'js/collections/group_configuration', 'js/models/group_configuration', 'js/views/pages/group_configurations'
 ], function(GroupConfigurationCollection, GroupConfigurationModel, GroupConfigurationsPage) {
     'use strict';
-    return function(experimentsEnabled,
+    function GroupConfigurationsFactory(experimentsEnabled,
                     experimentGroupConfigurationsJson,
                     allGroupConfigurationJson,
                     groupConfigurationUrl,
@@ -31,4 +31,6 @@ define([
             allGroupConfigurations: allGroupConfigurations
         }).render();
     };
+
+    invokePageFactory(GroupConfigurationsFactory);
 });

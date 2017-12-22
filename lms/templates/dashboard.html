@@ -48,7 +48,7 @@ from student.models import CourseEnrollment
     });
   </script>
   <%static:require_module module_name="js/learner_dashboard/unenrollment_factory" class_name="UnenrollmentFactory">
-    UnenrollmentFactory({
+    {
       urls: {
         dashboard: "${reverse('dashboard') | n, js_escaped_string}",
         signInUser: "${reverse('signin_user') | n, js_escaped_string}",
@@ -56,7 +56,7 @@ from student.models import CourseEnrollment
         browseCourses: "${marketing_link('COURSES') | n, js_escaped_string}"
       },
       isEdx: false
-    });
+    }
   </%static:require_module>
   % if settings.FEATURES.get('ENABLE_DASHBOARD_SEARCH'):
     <%static:require_module module_name="course_search/js/dashboard_search_factory" class_name="DashboardSearchFactory">

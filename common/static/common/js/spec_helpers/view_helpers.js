@@ -1,7 +1,6 @@
 /**
  * Provides helper methods for invoking Studio modal windows in Jasmine tests.
  */
-(function(define) {
     'use strict';
     define(['jquery', 'common/js/components/views/feedback_notification', 'common/js/components/views/feedback_prompt',
         'edx-ui-toolkit/js/utils/spec-helpers/ajax-helpers'],
@@ -149,4 +148,3 @@
             'submitAndVerifyFormError': submitAndVerifyFormError
         };
     });
-}).call(this, define || RequireJS.define);

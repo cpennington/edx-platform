@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'gettext', 'underscore', 'backbone'
@@ -78,4 +77,3 @@
 
         return {GroupView: GroupView, ChapterView: ChapterView};
     });
-}).call(this, define || RequireJS.define);

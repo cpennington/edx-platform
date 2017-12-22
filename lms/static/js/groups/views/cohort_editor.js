@@ -1,5 +1,4 @@
 /* globals _, NotificationModel, NotificationView, interpolate_text */
-(function(define) {
     'use strict';
     define(['backbone', 'underscore', 'jquery', 'gettext', 'js/groups/views/cohort_form', 'string_utils',
         'js/models/notification', 'js/views/notification'],
@@ -312,4 +311,3 @@
             });
             return CohortEditorView;
         });
-}).call(this, define || RequireJS.define);

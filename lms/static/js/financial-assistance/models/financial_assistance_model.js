@@ -1,7 +1,6 @@
 /**
  * Model for Financial Assistance.
  */
-(function(define) {
     'use strict';
     define(['backbone'], function(Backbone) {
         var FinancialAssistance = Backbone.Model.extend({
@@ -11,4 +10,3 @@
         });
         return FinancialAssistance;
     });
-}).call(this, define || RequireJS.define);

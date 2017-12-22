@@ -1,5 +1,5 @@
 window.WordCloud = function(el) {
-    RequireJS.require(['WordCloudMain'], function(WordCloudMain) {
+    require(['WordCloudMain'], function(WordCloudMain) {
         new WordCloudMain(el);
     });
 };

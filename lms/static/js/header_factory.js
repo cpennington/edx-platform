@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define([
@@ -13,4 +12,3 @@
             return dropdownMenuView;
         };
     });
-}).call(this, define || RequireJS.define);

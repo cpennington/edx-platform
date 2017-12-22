@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(['jquery', 'underscore', 'support/js/views/certificates'],
@@ -10,4 +9,3 @@
                 return new CertificatesView(options).render();
             };
         });
-}).call(this, define || RequireJS.define);

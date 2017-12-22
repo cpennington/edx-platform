@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define([
@@ -6,7 +5,7 @@
         'logger'
     ],
         function($, Logger) {
-            return function() {
+            function CoursewareFactory() {
                 // This function performs all actions common to all courseware.
                 // 1. adding an event to all link clicks.
                 $('a:not([href^="#"])').click(function(event) {
@@ -18,6 +17,7 @@
                         });
                 });
             };
+
+            CoursewareFactory();
         }
     );
-}).call(this, define || RequireJS.define);

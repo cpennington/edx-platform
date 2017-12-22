@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define(['backbone',
@@ -38,4 +37,3 @@
              });
          }
     );
-}).call(this, define || RequireJS.define);

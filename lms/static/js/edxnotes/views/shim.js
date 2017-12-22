@@ -1,4 +1,3 @@
-(function(define, undefined) {
     'use strict';
     define([
         'jquery', 'underscore', 'annotator_1.2.9', 'js/edxnotes/utils/utils'
@@ -329,4 +328,3 @@
             }
         });
     });
-}).call(this, define || RequireJS.define);

@@ -1,4 +1,3 @@
-(function(define) {
     'use strict';
 
     define([
@@ -234,4 +233,3 @@
         });
         return TabbedView;
     });
-}).call(this, define || RequireJS.define);
