@@ -31,6 +31,7 @@ from openedx.core.djangoapps.embargo import api as embargo_api
 from openedx.core.djangoapps.programs.utils import ProgramDataExtender, ProgramProgressMeter
 from openedx.core.djangoapps.waffle_utils import WaffleFlag, WaffleFlagNamespace
 from openedx.features.course_duration_limits.config import CONTENT_TYPE_GATING_FLAG
+from openedx.features.content_type_gating.models import ContentTypeGatingConfig
 from student.models import CourseEnrollment
 from util.db import outer_atomic
 from xmodule.modulestore.django import modulestore
@@ -186,7 +187,7 @@ class ChooseModeView(View):
             "error": error,
             "responsive": True,
             "nav_hidden": True,
-            "content_gating_enabled": CONTENT_TYPE_GATING_FLAG.is_enabled(),
+            "content_gating_enabled": CONTENT_TYPE_GATING_FLAG.is_enabled() or ContentTypeGatingConfig.current(course=course.id).enabled,
         }
         context.update(
             get_experiment_user_metadata_context(

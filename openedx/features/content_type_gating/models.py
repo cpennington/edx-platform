@@ -31,4 +31,8 @@ class ContentTypeGatingConfig(StackedConfigurationModel):
         current_config = self.current(course=course_key)
         return current_config.enabled and current_config.enabled_as_of <= enrollment.created
 
+    def enabled_now(self, now=None):
+        if now is None:
+            now = datetime.utcnow()
 
+        return self.enabled and self.enabled_as_of <= now

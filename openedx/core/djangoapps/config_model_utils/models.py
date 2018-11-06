@@ -43,33 +43,6 @@ class StackedConfigurationModel(ConfigurationModel):
     )
 
     @classmethod
-    def attribute_tuple(cls):
-        """
-        Returns a namedtuple with all attributes that can be overridden on this config model.
-
-        For example, if MyStackedConfig.STACKABLE_FIELDS = ('enabled', 'enabled_as_of', 'studio_enabled'),
-        then:
-
-            # These lines are the same
-            MyStackedConfig.attribute_tuple()
-            namedtuple('MyStackedConfigValues', ('enabled', 'enabled_as_of', 'studio_enabled'))
-
-            # attribute_tuple() behavior
-            MyStackedConfigValues = MyStackedConfig.attribute_tuple()
-            MyStackedConfigValues(True, '10/1/18', False).enabled  # True
-            MyStackedConfigValues(True, '10/1/18', False).enabled_as_of  # '10/1/18'
-            MyStackedConfigValues(True, '10/1/18', False).studio_enabled  # False
-        """
-        if hasattr(cls, '_attribute_tuple'):
-            return cls._attribute_tuple
-
-        cls._attribute_tuple = namedtuple(
-            '{}Values'.format(cls.__name__),
-            cls.STACKABLE_FIELDS
-        )
-        return cls._attribute_tuple
-
-    @classmethod
     def current(cls, site=None, org=None, course=None):  # pylint: disable=arguments-differ
         """
         Return the current overridden configuration at the specified level.
@@ -155,7 +128,7 @@ class StackedConfigurationModel(ConfigurationModel):
                 super(StackedConfigurationModel, cls).current(None, None, course)
             )
 
-        return cls.attribute_tuple()(**values)
+        return cls(**values)
 
     @classmethod
     def _org_from_course(cls, course_key):

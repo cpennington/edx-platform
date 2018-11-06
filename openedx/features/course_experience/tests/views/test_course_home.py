@@ -23,7 +23,7 @@ from lms.djangoapps.course_goals.api import add_course_goal, remove_course_goal
 from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 from openedx.core.djangoapps.schedules.tests.factories import ScheduleFactory
 from openedx.core.djangoapps.waffle_utils.testutils import WAFFLE_TABLES, override_waffle_flag
-from openedx.features.course_duration_limits.config import CONTENT_TYPE_GATING_FLAG
+from openedx.features.content_type_gating.models import ContentTypeGatingConfig
 from openedx.features.course_experience import (
     SHOW_REVIEWS_TOOL_FLAG,
     SHOW_UPGRADE_MSG_ON_COURSE_HOME,
@@ -169,11 +169,11 @@ class TestCourseHomePage(CourseHomePageTestCase):
         response = self.client.get(url)
         self.assertContains(response, TEST_COURSE_UPDATES_TOOL, status_code=200)
 
-    @override_waffle_flag(CONTENT_TYPE_GATING_FLAG, True)
     def test_queries(self):
         """
         Verify that the view's query count doesn't regress.
         """
+        ContentTypeGatingConfig.objects.create(enabled=True)
         # Pre-fetch the view to populate any caches
         course_home_url(self.course)
 
@@ -322,13 +322,13 @@ class TestCourseHomePageAccess(CourseHomePageTestCase):
         )
         self.assertRedirects(response, expected_url)
 
-    @override_waffle_flag(CONTENT_TYPE_GATING_FLAG, True)
     @mock.patch.dict(settings.FEATURES, {'DISABLE_START_DATES': False})
     def test_expired_course(self):
         """
         Ensure that a user accessing an expired course sees a redirect to
         the student dashboard, not a 404.
         """
+        ContentTypeGatingConfig.objects.create(enabled=True)
         three_years_ago = now() - timedelta(days=(365 * 3))
         course = CourseFactory.create(start=three_years_ago)
         user = self.create_user_for_course(course, CourseUserType.ENROLLED)

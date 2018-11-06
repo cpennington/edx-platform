@@ -46,7 +46,7 @@ from openedx.core.djangoapps.course_groups.tests.helpers import config_course_co
 from openedx.core.djangoapps.course_groups.tests.test_views import CohortViewsTestCase
 from openedx.core.djangoapps.util.testing import ContentGroupTestCase
 from openedx.core.djangoapps.waffle_utils.testutils import WAFFLE_TABLES, override_waffle_flag
-from openedx.features.course_duration_limits.config import CONTENT_TYPE_GATING_FLAG
+from openedx.features.content_type_gating.models import ContentTypeGatingConfig
 from openedx.features.enterprise_support.tests.mixins.enterprise import EnterpriseTestConsentRequired
 from student.roles import CourseStaffRole, UserBasedRole
 from student.tests.factories import CourseEnrollmentFactory, UserFactory
@@ -424,7 +424,6 @@ class SingleThreadQueryCountTestCase(ForumsEnableMixin, ModuleStoreTestCase):
     def setUp(self):
         super(SingleThreadQueryCountTestCase, self).setUp()
 
-    @override_waffle_flag(CONTENT_TYPE_GATING_FLAG, True)
     @ddt.data(
         # Old mongo with cache. There is an additional SQL query for old mongo
         # because the first time that disabled_xblocks is queried is in call_single_thread,
@@ -457,6 +456,7 @@ class SingleThreadQueryCountTestCase(ForumsEnableMixin, ModuleStoreTestCase):
             num_cached_sql_queries,
             mock_request
     ):
+        ContentTypeGatingConfig.objects.create(enabled=True)
         with modulestore().default_store(default_store):
             course = CourseFactory.create(discussion_topics={'dummy discussion': {'id': 'dummy_discussion_id'}})
 
