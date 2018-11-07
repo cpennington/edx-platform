@@ -5,6 +5,10 @@ Content Type Gating Configuration Models
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from datetime import datetime
+from django.db import models
+from django.utils.translation import ugettext as _
+
 from openedx.core.djangoapps.config_model_utils.models import StackedConfigurationModel
 
 
@@ -13,7 +17,7 @@ class ContentTypeGatingConfig(StackedConfigurationModel):
     STACKABLE_FIELDS = ('enabled', 'enabled_as_of', 'studio_override_enabled')
 
     enabled_as_of = models.DateField(default=None, null=True, verbose_name=_('Enabled As Of'))
-    studio_override_enabled = NullBooleanField(default=None, verbose_name=_('Studio Override Enabled'))
+    studio_override_enabled = models.NullBooleanField(default=None, verbose_name=_('Studio Override Enabled'))
 
     def enabled_for_enrollment(self, enrollment=None, user=None, course_key=None):
         if enrollment is not None and (user is not None or course_key is not None):
