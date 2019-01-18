@@ -406,7 +406,7 @@ def get_xqueue_callback_url_prefix(request):
 def get_module_for_descriptor(user, request, descriptor, field_data_cache, course_key,
                               position=None, wrap_xmodule_display=True, grade_bucket_type=None,
                               static_asset_path='', disable_staff_debug_info=False,
-                              course=None):
+                              course=None, will_recheck_access=False):
     """
     Implements get_module, extracting out the request-specific functionality.
 
@@ -438,7 +438,8 @@ def get_module_for_descriptor(user, request, descriptor, field_data_cache, cours
         user_location=user_location,
         request_token=xblock_request_token(request),
         disable_staff_debug_info=disable_staff_debug_info,
-        course=course
+        course=course,
+        will_recheck_access=will_recheck_access,
     )
 
 
@@ -457,7 +458,8 @@ def get_module_system_for_user(
         static_asset_path='',
         user_location=None,
         disable_staff_debug_info=False,
-        course=None
+        course=None,
+        will_recheck_access=False,
 ):
     """
     Helper function that returns a module system and student_data bound to a user and a descriptor.
@@ -528,7 +530,7 @@ def get_module_system_for_user(
             user_location=user_location,
             request_token=request_token,
             course=course,
-            will_recheck_access=True,
+            will_recheck_access=will_recheck_access,
         )
 
     def get_event_handler(event_type):
@@ -911,7 +913,6 @@ def get_module_for_descriptor_internal(user, descriptor, student_data, course_id
             not access
             and will_recheck_access
             and (access.user_message or access.user_fragment)
-            and isinstance(access, IncorrectPartitionGroupError)
         )
         if access or caller_will_handle_access_error:
             return descriptor

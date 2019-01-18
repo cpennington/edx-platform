@@ -1478,7 +1478,12 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
 
         # get the block, which verifies whether the user has access to the block.
         block, _ = get_module_by_usage_id(
-            request, text_type(course_key), text_type(usage_key), disable_staff_debug_info=True, course=course
+            request,
+            text_type(course_key),
+            text_type(usage_key),
+            disable_staff_debug_info=True,
+            course=course,
+            will_recheck_access=True,
         )
 
         student_view_context = request.GET.dict()
